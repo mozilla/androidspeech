@@ -66,7 +66,7 @@ Then start it:
         mMozillaSpeechService.start(getApplicationContext());
 ```
 
-If you want to cancel:
+In the case you want to cancel a progressing operation:
 ```
         mMozillaSpeechService.cancel();
 ```
