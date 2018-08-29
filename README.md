@@ -10,6 +10,9 @@ compile 'com.github.mozilla:mozillaspeechlibrary:1.0.1'
 }
 ```
 
+## Demo app
+Just run the demo application inside the folder `app`
+
 ## Usage
 The API encapsulates the microphone capture, audio encoding, voice activity detection and network 
 communication. So for this reason its integration is very simple: just call `start()` and handle the events in your frontend.
