@@ -63,7 +63,7 @@ public class MozillaSpeechService {
         mListeners.add(aListener);
     }
 
-    public void notifyListeners(MozillaSpeechService.SpeechState aState, Object aPayload) {
+    protected void notifyListeners(MozillaSpeechService.SpeechState aState, Object aPayload) {
         mState = aState;
         for (ISpeechRecognitionListener listener : mListeners) {
             listener.onSpeechStatusChanged(aState, aPayload);
@@ -77,4 +77,11 @@ public class MozillaSpeechService {
     public void cancel() {
         this.mSpeechRecognition.cancel();
     }
+
+    public void removeListener(ISpeechRecognitionListener aListener) {
+        if (mListeners != null) {
+            mListeners.remove(aListener);
+        }
+    }
+
 }

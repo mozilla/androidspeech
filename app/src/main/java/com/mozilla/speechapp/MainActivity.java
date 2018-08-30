@@ -37,7 +37,6 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mMozillaSpeechService = MozillaSpeechService.getInstance();
-        mMozillaSpeechService.addListener(this);
         initialize();
     }
 
@@ -62,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
         mPlain_text_input = findViewById(R.id.plain_text_input);
         mButtonStart.setOnClickListener((View v) ->  {
             try {
+                mMozillaSpeechService.addListener(this);
                 mDtstart = System.currentTimeMillis();
                 mSeries1.resetData(new DataPoint[0]);
                 mMozillaSpeechService.start(getApplicationContext());
@@ -107,22 +107,31 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
                 case STT_RESULT:
                     String message = String.format("Success: %s (%s)", ((STTResult)aPayload).mTranscription, ((STTResult)aPayload).mConfidence);
                     mPlain_text_input.append(message + "\n");
+                    removeListener();
                     break;
                 case START_LISTEN:
                     mPlain_text_input.append("Started to listen\n");
                     break;
                 case NO_VOICE:
                     mPlain_text_input.append("No Voice detected\n");
+                    removeListener();
                     break;
                 case CANCELED:
                     mPlain_text_input.append("Canceled\n");
+                    removeListener();
                     break;
                 case ERROR:
                     mPlain_text_input.append("Error:" + aPayload + " \n");
+                    removeListener();
                     break;
                 default:
                     break;
             }
         });
     }
+
+    public void removeListener() {
+        mMozillaSpeechService.removeListener(this);
+    }
+
 }

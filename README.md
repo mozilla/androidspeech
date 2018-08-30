@@ -71,3 +71,7 @@ In the case you want to cancel a progressing operation:
         mMozillaSpeechService.cancel();
 ```
 
+To remove a listener:
+```
+        mMozillaSpeechService.removeListener(aListener);
+```
