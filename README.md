@@ -6,7 +6,7 @@ This is an Android library containing an API to Mozilla's speech recognition ser
 ## Installation
 ```
 dependencies { 
-compile 'com.github.mozilla:mozillaspeechlibrary:1.0.1'
+      implementation 'com.github.mozilla:mozillaspeechlibrary:1.0.2'
 }
 ```
 
