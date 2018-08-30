@@ -17,7 +17,7 @@ Just run the demo application inside the folder `app`
 The API encapsulates the microphone capture, audio encoding, voice activity detection and network 
 communication. So for this reason its integration is very simple: just call `start()` and handle the events in your frontend.
 
-###First define a listener to capture the events:
+### First define a listener to capture the events:
 ```
 ISpeechRecognitionListener mVoiceSearchListener = new ISpeechRecognitionListener() {
       public void onSpeechStatusChanged(final MozillaSpeechService.SpeechState aState, final Object aPayload){
@@ -59,19 +59,19 @@ ISpeechRecognitionListener mVoiceSearchListener = new ISpeechRecognitionListener
   };
 ```
 
-###Then start it:
+### Then start it:
 ```
         mMozillaSpeechService = MozillaSpeechService.getInstance();
         mMozillaSpeechService.addListener(mVoiceSearchListener);
         mMozillaSpeechService.start(getApplicationContext());
 ```
 
-###In the case you want to cancel a progressing operation:
+### In the case you want to cancel a progressing operation:
 ```
         mMozillaSpeechService.cancel();
 ```
 
-###To remove a listener:
+### To remove a listener:
 ```
         mMozillaSpeechService.removeListener(aListener);
 ```
