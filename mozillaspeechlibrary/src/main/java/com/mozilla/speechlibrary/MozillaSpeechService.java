@@ -64,13 +64,13 @@ public class MozillaSpeechService {
     }
 
     protected void notifyListeners(MozillaSpeechService.SpeechState aState, Object aPayload) {
+        if (aState == SpeechState.STT_RESULT || aState == SpeechState.ERROR
+                || aState == SpeechState.NO_VOICE || aState == SpeechState.CANCELED) {
+            isIdle = true;
+        }
         mState = aState;
         for (ISpeechRecognitionListener listener : mListeners) {
             listener.onSpeechStatusChanged(aState, aPayload);
-            if (aState == SpeechState.STT_RESULT || aState == SpeechState.ERROR
-                    || aState == SpeechState.NO_VOICE || aState == SpeechState.CANCELED) {
-                isIdle = true;
-            }
         }
     }
 
