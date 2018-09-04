@@ -3,7 +3,7 @@ apply from: 'maven-push.gradle'
 
 def versionMajor = 1
 def versionMinor = 0
-def versionPatch = 3
+def versionPatch = 4
 
 android {
     compileSdkVersion 25
@@ -12,9 +12,7 @@ android {
         targetSdkVersion 25
         versionCode versionMajor * 10000 + versionMinor * 100 + versionPatch
         versionName "${versionMajor}.${versionMinor}.${versionPatch}"
-
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
     }
 
     buildTypes {

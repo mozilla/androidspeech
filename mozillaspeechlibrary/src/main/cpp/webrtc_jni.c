@@ -5,12 +5,10 @@
 #include <jni.h>
 
 #define AGGRESSIVENESS 3
-#define BUFFER_SIZE 512
 VadInst* internalHandle;
 int resultVad;
 
 JNIEXPORT jint JNICALL Java_com_mozilla_speechlibrary_Vad_start (JNIEnv * env, jobject obj){
-    short buffer[BUFFER_SIZE];
     int ret_state = 0;
     internalHandle = NULL;
 
@@ -23,21 +21,19 @@ JNIEXPORT jint JNICALL Java_com_mozilla_speechlibrary_Vad_start (JNIEnv * env, j
     return ret_state;
 }
 
-
 JNIEXPORT jint JNICALL Java_com_mozilla_speechlibrary_Vad_stop(JNIEnv * env, jobject object) {
-    WebRtcVad_Free(internalHandle);
+    if (WebRtcVad_Free(internalHandle) == 0) {
+        internalHandle = NULL;
+    }
 }
 
 JNIEXPORT jint JNICALL Java_com_mozilla_speechlibrary_Vad_isSilence(JNIEnv * env, jobject object) {
     return resultVad;
 }
-  
 
 JNIEXPORT jint JNICALL Java_com_mozilla_speechlibrary_Vad_feed(JNIEnv * env, jobject object, jshortArray bytes, jint size) {
-    jshort * arrayElements = (*env)->GetShortArrayElements(env, bytes, 0);
+    jshort *arrayElements = (*env)->GetShortArrayElements(env, bytes, 0);
     resultVad = WebRtcVad_Process(internalHandle, 16000, arrayElements, size);
-    (*env)->ReleaseShortArrayElements( env, bytes, arrayElements, 0 );
+    (*env)->ReleaseShortArrayElements(env, bytes, arrayElements, 0);
     return resultVad;
 }
-
-

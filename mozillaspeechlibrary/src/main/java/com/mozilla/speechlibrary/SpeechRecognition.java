@@ -135,6 +135,7 @@ class SpeechRecognition implements Runnable {
 
     public void cancel(){
         cancelled = true;
+        mVad.stop();
         network.cancel();
     }
 }

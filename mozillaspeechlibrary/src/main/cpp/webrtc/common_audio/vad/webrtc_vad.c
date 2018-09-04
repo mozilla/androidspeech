@@ -30,8 +30,8 @@ int WebRtcVad_Create(VadInst** handle) {
   }
 
   *handle = NULL;
-  self = (VadInstT*) malloc(sizeof(VadInstT));
-  *handle = (VadInst*) self;
+  self = (VadInstT*)malloc(sizeof(VadInstT));
+  *handle = (VadInst*)self;
 
   if (self == NULL) {
     return -1;

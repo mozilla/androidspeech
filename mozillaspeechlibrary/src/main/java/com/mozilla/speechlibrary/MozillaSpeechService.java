@@ -31,6 +31,7 @@ public class MozillaSpeechService {
     }
 
     private MozillaSpeechService() {
+        mVad = new Vad();
     }
 
     public void start(Context aContext) {
@@ -39,7 +40,6 @@ public class MozillaSpeechService {
             if (!isIdle) {
                 notifyListeners(SpeechState.ERROR, "Recognition already In progress");
             } else {
-                mVad = new Vad();
                 int retVal = mVad.start();
                 this.mContext = aContext;
                 if (retVal < 0) {
