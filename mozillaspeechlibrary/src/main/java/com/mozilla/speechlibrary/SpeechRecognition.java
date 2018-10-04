@@ -27,13 +27,16 @@ class SpeechRecognition implements Runnable {
     int mChannels;
     MozillaSpeechService mService;
     Networking network;
+    NetworkSettings mNetworkSettings;
 
-    protected SpeechRecognition(int aSampleRate, int aChannels, Vad aVad, Context aContext, MozillaSpeechService aService) {
+    protected SpeechRecognition(int aSampleRate, int aChannels, Vad aVad, Context aContext,
+                                MozillaSpeechService aService, NetworkSettings mNetworkSettings) {
         this.mVad = aVad;
         this.mContext = aContext;
         this.mSampleRate = aSampleRate;
         this.mChannels = aChannels;
         this.mService = aService;
+        this.mNetworkSettings = mNetworkSettings;
     }
 
     public void run() {
@@ -94,13 +97,13 @@ class SpeechRecognition implements Runnable {
 
                 if (finishedvoice) {
                     this.done = true;
-                    network.doSTT(baos);
+                    network.doSTT(baos, mNetworkSettings);
                 }
 
                 if ((dtdepois - dtantes)/1000 > mUpperLimit ) {
                     this.done = true;
                     if (touchedvoice) {
-                        network.doSTT(baos);
+                        network.doSTT(baos, mNetworkSettings);
                     }
                     else {
                         raisenovoice = true;

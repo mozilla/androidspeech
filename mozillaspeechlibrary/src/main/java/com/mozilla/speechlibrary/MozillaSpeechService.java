@@ -14,6 +14,7 @@ public class MozillaSpeechService {
     private ArrayList<ISpeechRecognitionListener> mListeners;
     private Context mContext;
     private boolean isIdle = true;
+    NetworkSettings mNetworkSettings;
 
     public enum SpeechState
     {
@@ -32,6 +33,7 @@ public class MozillaSpeechService {
 
     private MozillaSpeechService() {
         mVad = new Vad();
+        mNetworkSettings = new NetworkSettings();
     }
 
     public void start(Context aContext) {
@@ -45,7 +47,8 @@ public class MozillaSpeechService {
                 if (retVal < 0) {
                     notifyListeners(SpeechState.ERROR, "Error Initializing VAD " + String.valueOf(retVal));
                 } else {
-                    this.mSpeechRecognition = new SpeechRecognition(SAMPLERATE, CHANNELS, mVad, aContext, this);
+                    this.mSpeechRecognition = new SpeechRecognition(SAMPLERATE, CHANNELS, mVad, aContext,
+                            this, mNetworkSettings);
                     Thread audio_thread = new Thread(this.mSpeechRecognition);
                     audio_thread.start();
                     isIdle = false;
@@ -82,6 +85,22 @@ public class MozillaSpeechService {
         if (mListeners != null) {
             mListeners.remove(aListener);
         }
+    }
+
+    public void storeSamples(boolean yesOrNo) {
+        this.mNetworkSettings.mStoreSamples = yesOrNo;
+    }
+
+    public void storeTranscriptions(boolean yesOrNo) {
+        this.mNetworkSettings.mStoreTranscriptions = yesOrNo;
+    }
+
+    public void setLanguage(String language) {
+        this.mNetworkSettings.mLanguage = language;
+    }
+
+    public void setProductTag(String tag) {
+        this.mNetworkSettings.mProductTag = tag;
     }
 
 }

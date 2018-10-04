@@ -23,7 +23,7 @@ public class Networking {
         this.mSpeechService = aSpeechService;
     }
 
-    protected void doSTT(final ByteArrayOutputStream baos) {
+    protected void doSTT(final ByteArrayOutputStream baos, NetworkSettings mNetworkSettings) {
 
         if (cancelled) {
             mSpeechService.notifyListeners(MozillaSpeechService.SpeechState.CANCELED, null);
@@ -34,7 +34,12 @@ public class Networking {
             Looper.prepare();
             ByteArrayEntity byteArrayEntity = new ByteArrayEntity(baos.toByteArray());
             SyncHttpClient client = new SyncHttpClient();
-            client.post(mContext,STT_ENDPOINT, byteArrayEntity, "audio/3gpp",
+            client.addHeader("Accept-Language-STT", mNetworkSettings.mLanguage);
+            client.addHeader("Store-Transcription", mNetworkSettings.mStoreTranscriptions ? "1": "0" );
+            client.addHeader("Store-Sample", mNetworkSettings.mStoreSamples ? "1": "0");
+            client.addHeader("Product-Tag", mNetworkSettings.mProductTag);
+
+            client.post(mContext, STT_ENDPOINT, byteArrayEntity, "audio/3gpp",
                 new AsyncHttpResponseHandler() {
 
                     @Override
@@ -92,3 +97,9 @@ public class Networking {
     }
 }
 
+class NetworkSettings {
+    boolean mStoreSamples = true;
+    boolean mStoreTranscriptions = true;
+    String mLanguage;
+    String mProductTag = "moz-android-speech-lib";
+}

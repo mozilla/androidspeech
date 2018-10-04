@@ -11,7 +11,9 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Switch;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
@@ -23,9 +25,8 @@ import com.mozilla.speechmodule.R;
 
 import static android.support.constraint.Constraints.TAG;
 
-public class MainActivity extends AppCompatActivity implements ISpeechRecognitionListener {
+public class MainActivity extends AppCompatActivity implements ISpeechRecognitionListener, CompoundButton.OnCheckedChangeListener {
 
-    private Button mButtonStart, mButtonCancel;
     private MozillaSpeechService mMozillaSpeechService;
     private GraphView mGraph;
     private long mDtstart;
@@ -42,6 +43,11 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
 
     private void initialize() {
 
+        Button buttonStart, buttonCancel;
+        EditText txtProdutTag, txtLanguage;
+        Switch switchTranscriptions = findViewById(R.id.switchTranscriptions);
+        Switch switchSamples = findViewById(R.id.switchSamples);
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
                 != PackageManager.PERMISSION_GRANTED) {
 
@@ -55,15 +61,20 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     124);
         }
-        mButtonStart = findViewById(R.id.button_start);
-        mButtonCancel = findViewById(R.id.button_cancel);
+
+        buttonStart = findViewById(R.id.button_start);
+        buttonCancel = findViewById(R.id.button_cancel);
+        txtProdutTag = findViewById(R.id.txtProdutTag);
+        txtLanguage = findViewById(R.id.txtLanguage);
 
         mPlain_text_input = findViewById(R.id.plain_text_input);
-        mButtonStart.setOnClickListener((View v) ->  {
+        buttonStart.setOnClickListener((View v) ->  {
             try {
                 mMozillaSpeechService.addListener(this);
                 mDtstart = System.currentTimeMillis();
                 mSeries1.resetData(new DataPoint[0]);
+                mMozillaSpeechService.setLanguage(txtLanguage.getText().toString());
+                mMozillaSpeechService.setProductTag(txtProdutTag.getText().toString());
                 mMozillaSpeechService.start(getApplicationContext());
             } catch (Exception e) {
                 Log.d(TAG, e.getLocalizedMessage());
@@ -71,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
             }
         });
 
-        mButtonCancel.setOnClickListener((View v) ->  {
+        buttonCancel.setOnClickListener((View v) ->  {
             try {
                 mMozillaSpeechService.cancel();
             } catch (Exception e) {
@@ -79,6 +90,11 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
                 e.printStackTrace();
             }
         });
+
+        switchTranscriptions.setOnCheckedChangeListener(this);
+        switchSamples.setOnCheckedChangeListener(this);
+        mMozillaSpeechService.storeTranscriptions(false);
+        mMozillaSpeechService.storeSamples(false);
 
         mGraph = findViewById(R.id.graph);
         mSeries1 = new LineGraphSeries<>(new DataPoint[0]);
@@ -134,4 +150,12 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
         mMozillaSpeechService.removeListener(this);
     }
 
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        if (buttonView.equals(findViewById(R.id.switchTranscriptions))) {
+            mMozillaSpeechService.storeTranscriptions(isChecked);
+        } else {
+            mMozillaSpeechService.storeSamples(isChecked);
+        }
+    }
 }
