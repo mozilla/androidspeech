@@ -35,18 +35,56 @@
         android:layout_toEndOf="@+id/button_start"
         android:text="Cancel" />
 
-    <EditText
-        android:id="@+id/plain_text_input"
-        android:layout_height="match_parent"
-        android:layout_width="match_parent"
-        android:layout_below="@+id/button_start"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginBottom="10dp"
-        android:singleLine="false"
-        android:gravity="top"
-        android:inputType="textMultiLine"
-        android:enabled="false" />
+        <EditText
+            android:id="@+id/plain_text_input"
+            android:layout_width="match_parent"
+            android:layout_height="123dp"
+            android:layout_below="@+id/button_start"
+            android:layout_marginBottom="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="120dp"
+            android:enabled="false"
+            android:gravity="top"
+            android:inputType="textMultiLine"
+            android:singleLine="false" />
+
+        <Switch
+            android:id="@+id/switchTranscriptions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:text="Store Transcriptions" />
+
+        <Switch
+            android:id="@+id/switchSamples"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@+id/graph"
+            android:text="Store Samples" />
+
+        <EditText
+            android:id="@+id/txtProdutTag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/plain_text_input"
+            android:layout_alignStart="@+id/graph"
+            android:layout_marginBottom="-71dp"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:text="ProductTag" />
+
+        <EditText
+            android:id="@+id/txtLanguage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/plain_text_input"
+            android:layout_alignStart="@+id/graph"
+            android:layout_marginBottom="-120dp"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:text="Language" />
     </RelativeLayout>
 </android.support.constraint.ConstraintLayout>
