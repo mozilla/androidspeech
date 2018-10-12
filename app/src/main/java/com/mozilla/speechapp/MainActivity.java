@@ -93,8 +93,8 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
 
         switchTranscriptions.setOnCheckedChangeListener(this);
         switchSamples.setOnCheckedChangeListener(this);
-        mMozillaSpeechService.storeTranscriptions(false);
-        mMozillaSpeechService.storeSamples(false);
+        switchTranscriptions.toggle();
+        switchSamples.toggle();
 
         mGraph = findViewById(R.id.graph);
         mSeries1 = new LineGraphSeries<>(new DataPoint[0]);
