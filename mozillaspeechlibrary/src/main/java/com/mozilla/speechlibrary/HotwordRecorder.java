@@ -72,7 +72,7 @@ public class HotwordRecorder {
                                              .build();
         mRecorder.startRecording();
         mRecording = true;
-        mThread = new Thread(() -> readAudio());
+        mThread = new Thread(readAudio);
         mThread.start();
     }
 
@@ -89,23 +89,26 @@ public class HotwordRecorder {
     /**
      * Read audio from the audio recorder stream.
      */
-    private void readAudio() {
-        int readBytes;
-        short[] buffer = new short[BUFFER_SIZE];
+    private Runnable readAudio =
+        new Runnable(){
+            public void run(){
+                int readBytes;
+                short[] buffer = new short[BUFFER_SIZE];
 
-        while (mRecording) {
-            readBytes = mRecorder.read(buffer, 0, BUFFER_SIZE);
+                while (mRecording) {
+                    readBytes = mRecorder.read(buffer, 0, BUFFER_SIZE);
 
-            if (readBytes != AudioRecord.ERROR_INVALID_OPERATION) {
-                for (short s : buffer) {
-                    writeShort(mPcmStream, s);
+                    if (readBytes != AudioRecord.ERROR_INVALID_OPERATION) {
+                        for (short s : buffer) {
+                            writeShort(mPcmStream, s);
+                        }
+                    }
                 }
-            }
-        }
 
-        mRecorder.release();
-        mRecorder = null;
-    }
+                mRecorder.release();
+                mRecorder = null;
+            }
+        };
 
     /**
      * Convert raw PCM data to a wav file.
