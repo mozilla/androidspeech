@@ -11,7 +11,7 @@ import com.github.axet.audiolibrary.encoders.Sound;
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 
-class SpeechRecognition implements Runnable {
+class NetworkSpeechRecognition implements Runnable {
 
     Vad mVad;
     short[] mBuftemp;
@@ -29,7 +29,7 @@ class SpeechRecognition implements Runnable {
     Networking network;
     NetworkSettings mNetworkSettings;
 
-    protected SpeechRecognition(int aSampleRate, int aChannels, Vad aVad, Context aContext,
+    protected NetworkSpeechRecognition(int aSampleRate, int aChannels, Vad aVad, Context aContext,
                                 MozillaSpeechService aService, NetworkSettings mNetworkSettings) {
         this.mVad = aVad;
         this.mContext = aContext;
