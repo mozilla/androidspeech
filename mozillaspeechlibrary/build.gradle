@@ -1,9 +1,9 @@
 apply plugin: 'com.android.library'
 apply from: 'maven-push.gradle'
 
-def versionMajor = 1
+def versionMajor = 2
 def versionMinor = 0
-def versionPatch = 4
+def versionPatch = 0
 
 android {
     compileSdkVersion 25
@@ -13,6 +13,10 @@ android {
         versionCode versionMajor * 10000 + versionMinor * 100 + versionPatch
         versionName "${versionMajor}.${versionMinor}.${versionPatch}"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
+        }
     }
 
     buildTypes {
@@ -27,15 +31,21 @@ android {
             path 'src/main/cpp/Android.mk'
         }
     }
+
     compileOptions {
         sourceCompatibility = 1.7
         targetCompatibility = 1.7
+    }
+
+    lintOptions {
+        abortOnError false
     }
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.loopj.android:android-async-http:1.4.9'
+    implementation 'org.mozilla.deepspeech:libdeepspeech:0.5.0-alpha.1@aar'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'

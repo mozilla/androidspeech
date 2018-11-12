@@ -15,6 +15,8 @@ public class MozillaSpeechService {
     private Context mContext;
     private boolean isIdle = true;
     NetworkSettings mNetworkSettings;
+    private boolean useDeepSpeech = false;
+    private String mModelPath;
 
     public enum SpeechState
     {
@@ -23,7 +25,8 @@ public class MozillaSpeechService {
     }
 
     private static final MozillaSpeechService ourInstance = new MozillaSpeechService();
-    private SpeechRecognition mSpeechRecognition;
+    private NetworkSpeechRecognition mNetworkSpeechRecognition;
+    private LocalSpeechRecognition mLocalSpeechRecognition;
     private SpeechState mState;
     private Vad mVad;
 
@@ -47,15 +50,23 @@ public class MozillaSpeechService {
                 if (retVal < 0) {
                     notifyListeners(SpeechState.ERROR, "Error Initializing VAD " + String.valueOf(retVal));
                 } else {
-                    this.mSpeechRecognition = new SpeechRecognition(SAMPLERATE, CHANNELS, mVad, aContext,
-                            this, mNetworkSettings);
-                    Thread audio_thread = new Thread(this.mSpeechRecognition);
+                    Thread audio_thread;
+
+                    if (this.useDeepSpeech) {
+                        this.mLocalSpeechRecognition = new LocalSpeechRecognition(SAMPLERATE, CHANNELS, mVad, this);
+                        audio_thread = new Thread(this.mLocalSpeechRecognition);
+                    } else {
+                        this.mNetworkSpeechRecognition = new NetworkSpeechRecognition(SAMPLERATE, CHANNELS, mVad, aContext, this, mNetworkSettings);
+                        audio_thread = new Thread(this.mNetworkSpeechRecognition);
+                    }
+
                     audio_thread.start();
                     isIdle = false;
                 }
             }
         } catch (Exception exc) {
-            notifyListeners(SpeechState.ERROR, "General error loading the module.");
+            Log.e("MozillaSpeechService", "General error loading the module: " + exc);
+            notifyListeners(SpeechState.ERROR, "General error loading the module: " + exc);
         }
     }
 
@@ -78,7 +89,10 @@ public class MozillaSpeechService {
     }
 
     public void cancel() {
-        this.mSpeechRecognition.cancel();
+        // this.mNetworkSpeechRecognition.cancel();
+        if (this.mLocalSpeechRecognition != null) {
+            this.mLocalSpeechRecognition.cancel();
+        }
     }
 
     public void removeListener(ISpeechRecognitionListener aListener) {
@@ -97,6 +111,31 @@ public class MozillaSpeechService {
 
     public void setLanguage(String language) {
         this.mNetworkSettings.mLanguage = language;
+    }
+
+    public String getLanguageDir() {
+        return LocalSpeechRecognition.getLanguageDir(this.mNetworkSettings.mLanguage);
+    }
+
+    public void useDeepSpeech(boolean yesOrNo) {
+        this.useDeepSpeech = yesOrNo;
+    }
+
+    public String getModelPath() {
+        return this.mModelPath;
+    }
+
+    // This sets model's root path, not including the language
+    public void setModelPath(String aModelPath) {
+        this.mModelPath = aModelPath;
+    }
+
+    public boolean ensureModelInstalled() {
+        return LocalSpeechRecognition.ensureModelInstalled(this.getModelPath() + "/" + this.getLanguageDir());
+    }
+
+    public String getModelDownloadURL() {
+        return LocalSpeechRecognition.getModelDownloadURL(this.getLanguageDir());
     }
 
     public void setProductTag(String tag) {
