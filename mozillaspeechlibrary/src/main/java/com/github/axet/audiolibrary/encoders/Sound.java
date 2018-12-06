@@ -17,7 +17,7 @@ public class Sound {
                 AudioFormat.ENCODING_PCM_16BIT);
 
         // initialize audio recorder
-        AudioRecord recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
+        AudioRecord recorder = new AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION,
                 aSampleRate,
                 aNumChannels == 1 ? AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO,
                 AudioFormat.ENCODING_PCM_16BIT,
