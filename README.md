@@ -62,6 +62,7 @@ ISpeechRecognitionListener mVoiceSearchListener = new ISpeechRecognitionListener
 #### Then start it:
 ```
         mMozillaSpeechService = MozillaSpeechService.getInstance();
+        mMozillaSpeechService.setLanguage("en-US");
         mMozillaSpeechService.addListener(mVoiceSearchListener);
         mMozillaSpeechService.start(getApplicationContext());
 ```
@@ -75,3 +76,5 @@ ISpeechRecognitionListener mVoiceSearchListener = new ISpeechRecognitionListener
 ```
         mMozillaSpeechService.removeListener(aListener);
 ```
+
+**Note**: Your app will need `RECORD_AUDIO`, `WRITE_EXTERNAL_STORAGE` and `READ_EXTERNAL_STORAGE` permissions to be [set](https://github.com/mozilla/androidspeech/blob/master/app/src/main/AndroidManifest.xml#L5) in AndroidManifest.xml manifest and [requested](https://github.com/benfrancis/androidspeech/blob/master/app/src/main/java/com/mozilla/speechapp/MainActivity.java#L78) at runtime.
