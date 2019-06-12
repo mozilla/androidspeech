@@ -45,7 +45,7 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.loopj.android:android-async-http:1.4.9'
-    implementation 'org.mozilla.deepspeech:libdeepspeech:0.5.0-alpha.1@aar'
+    implementation 'org.mozilla.deepspeech:libdeepspeech:0.5.1@aar'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
