@@ -34,8 +34,6 @@ class LocalDSInference implements Runnable {
 
     boolean stopStream;
 
-    final int N_CEP = 26;
-    final int N_CONTEXT = 9;
     final int BEAM_WIDTH = 250;
 
     final float LM_WEIGHT = 0.75f;
@@ -44,7 +42,7 @@ class LocalDSInference implements Runnable {
     static final String _tag = "LocalDSInference";
 
     static boolean keepClips  = false;
-    static boolean useDecoder = false;
+    static boolean useDecoder = true;
     static int clipNumber = 0;
     FileChannel clipDebug;
 
@@ -54,7 +52,7 @@ class LocalDSInference implements Runnable {
     String LM;
     String trie;
 
-    protected LocalDSInference(MozillaSpeechService aService, int aFrameSize, int aSampleRate) {
+    protected LocalDSInference(MozillaSpeechService aService, int aSampleRate) {
         Log.e(this._tag, "new LocalDSInference()");
 
         modelRoot = aService.getModelPath() + "/" + aService.getLanguageDir();
@@ -69,7 +67,7 @@ class LocalDSInference implements Runnable {
         this.clipNumber += 1;
 
         this.keepClips  = (new File(this.modelRoot + "/.keepClips")).exists();
-        this.useDecoder = (new File(this.modelRoot + "/.useDecoder")).exists();
+        this.useDecoder = !(new File(this.modelRoot + "/.noUseDecoder")).exists();
 
         Log.e(this._tag, "keepClips=" + this.keepClips);
         Log.e(this._tag, "useDecoder=" + this.useDecoder);
@@ -78,11 +76,11 @@ class LocalDSInference implements Runnable {
 
         if (this.mModel == null) {
             Log.e(this._tag, "new DeepSpeechModel(\"" + this.tfliteModel + "\")");
-            this.mModel = new DeepSpeechModel(this.tfliteModel, N_CEP, N_CONTEXT, this.alphabet, BEAM_WIDTH);
+            this.mModel = new DeepSpeechModel(this.tfliteModel, this.alphabet, BEAM_WIDTH);
         }
 
         if (this.useDecoder) {
-            this.mModel.enableDecoderWihLM(this.alphabet, this.LM, this.trie, LM_WEIGHT, VALID_WORD_COUNT_WEIGHT);
+            this.mModel.enableDecoderWihLM(this.LM, this.trie, LM_WEIGHT, VALID_WORD_COUNT_WEIGHT);
         }
 
         if (this.keepClips) {
@@ -92,7 +90,7 @@ class LocalDSInference implements Runnable {
             }
         }
 
-        this.mStreamingState = this.mModel.setupStream(aFrameSize * 2, aSampleRate);
+        this.mStreamingState = this.mModel.createStream(aSampleRate);
         this.stopStream      = false;
     }
 
@@ -105,7 +103,7 @@ class LocalDSInference implements Runnable {
 
         if (this.mModel != null) {
             Log.e(this._tag, "closeModel()");
-            this.mModel.destroyModel();
+            this.mModel.freeModel();
         }
 
         this.mStreamingState = null;
@@ -197,11 +195,11 @@ class LocalSpeechRecognition implements Runnable {
 
     private static Map<String,String> mLanguages = new HashMap<String, String>();
     static {
-        mLanguages.put("en-US", "eng");
-        mLanguages.put("fr-FR", "fra");
+        mLanguages.put("en-US", "en-us");
+        mLanguages.put("fr-FR", "fr-fr");
     }
 
-    private static String kBaseModelURL = "https://github.com/lissyx/DeepSpeech/releases/download/android-test/";
+    private static String kBaseModelURL = "https://github.com/lissyx/DeepSpeech/releases/download/v0.6.0-alpha.7/";
 
     protected LocalSpeechRecognition(int aSampleRate, int aChannels, Vad aVad,
                                 MozillaSpeechService aService) {
@@ -211,7 +209,7 @@ class LocalSpeechRecognition implements Runnable {
         this.mChannels = aChannels;
         this.mService = aService;
 
-        this.mInferer = new LocalDSInference(this.mService, FRAME_SIZE, this.mSampleRate);
+        this.mInferer = new LocalDSInference(this.mService, this.mSampleRate);
         this.mInferenceThread = new Thread(this.mInferer);
         this.mInferenceThread.start();
     }
