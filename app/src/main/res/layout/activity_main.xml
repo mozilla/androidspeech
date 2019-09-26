@@ -94,7 +94,7 @@
             android:layout_marginBottom="-80dp"
             android:ems="10"
             android:inputType="textPersonName"
-            android:text="eng" />
+            android:text="en-us" />
     
     </RelativeLayout>
 </android.support.constraint.ConstraintLayout>

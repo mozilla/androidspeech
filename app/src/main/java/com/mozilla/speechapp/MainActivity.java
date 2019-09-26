@@ -230,6 +230,13 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
 
     public void maybeDownloadOrExtractModel(String aModelsPath, String aLang) {
         String zipFile   = aModelsPath + "/" + aLang + ".zip";
+        String aModelPath= aModelsPath + "/" + aLang + "/";
+
+        File aModelFolder = new File(aModelPath);
+        if (!aModelFolder.exists()) {
+            aModelFolder.mkdirs();
+        }
+
         Uri modelZipURL  = Uri.parse(mMozillaSpeechService.getModelDownloadURL());
         Uri modelZipFile = Uri.parse("file://" + zipFile);
 
@@ -251,7 +258,7 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
                         if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
                             Log.d(TAG, "Download successfull");
 
-                            new AsyncUnzip().execute(zipFile, aModelsPath);
+                            new AsyncUnzip().execute(zipFile, aModelPath);
                         }
                     }
                 }
