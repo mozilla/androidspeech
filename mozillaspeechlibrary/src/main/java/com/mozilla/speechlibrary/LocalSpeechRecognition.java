@@ -11,8 +11,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.File;
+import java.io.FileReader;
 
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
@@ -20,6 +22,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 import android.util.Log;
+
+import org.json.JSONObject;
 
 import org.mozilla.deepspeech.libdeepspeech.DeepSpeechModel;
 import org.mozilla.deepspeech.libdeepspeech.DeepSpeechStreamingState;
@@ -34,11 +38,6 @@ class LocalDSInference implements Runnable {
 
     boolean stopStream;
 
-    final int BEAM_WIDTH = 250;
-
-    final float LM_WEIGHT = 0.75f;
-    final float VALID_WORD_COUNT_WEIGHT = 1.85f;
-
     static final String _tag = "LocalDSInference";
 
     static boolean keepClips  = false;
@@ -48,11 +47,15 @@ class LocalDSInference implements Runnable {
 
     String modelRoot;
     String tfliteModel;
-    String alphabet;
     String LM;
     String trie;
+    String infoJson;
 
-    protected LocalDSInference(MozillaSpeechService aService, int aSampleRate) {
+    int beamWidth = -1;
+    float lmAlpha = -1;
+    float lmBeta = -1;
+
+    protected LocalDSInference(MozillaSpeechService aService) {
         Log.e(this._tag, "new LocalDSInference()");
 
         modelRoot = aService.getModelPath() + "/" + aService.getLanguageDir();
@@ -60,9 +63,31 @@ class LocalDSInference implements Runnable {
         Log.e(this._tag, "Loading model from " + modelRoot);
 
         this.tfliteModel = this.modelRoot + "/" + LocalSpeechRecognition.kTfLiteModel;
-        this.alphabet    = this.modelRoot + "/" + LocalSpeechRecognition.kAlphabet;
         this.LM          = this.modelRoot + "/" + LocalSpeechRecognition.kLM;
         this.trie        = this.modelRoot + "/" + LocalSpeechRecognition.kTrie;
+        this.infoJson    = this.modelRoot + "/" + LocalSpeechRecognition.kInfoJson;
+
+        try {
+            String infoJsonContent = new String();
+            BufferedReader br = new BufferedReader(new FileReader(this.infoJson));
+            String line;
+            while ((line = br.readLine()) != null) {
+                Log.e(this._tag, "line=" + line);
+                infoJsonContent += line;
+            }
+            br.close();
+           Log.e(this._tag, "infoJsonContent=" + infoJsonContent);
+
+            JSONObject modelParameters = (new JSONObject(infoJsonContent)).getJSONObject("parameters");
+            this.beamWidth = modelParameters.getInt("beamWidth");
+            this.lmAlpha = (float)modelParameters.getDouble("lmAlpha");
+            this.lmBeta = (float)modelParameters.getDouble("lmBeta");
+        } catch (Exception ex) {
+        }
+
+        Log.e(this._tag, "Read model parameters: beamWidth=" + this.beamWidth);
+        Log.e(this._tag, "Read model parameters: lmAlpha=" + this.lmAlpha);
+        Log.e(this._tag, "Read model parameters: lmBeta=" + this.lmBeta);
 
         this.clipNumber += 1;
 
@@ -76,11 +101,11 @@ class LocalDSInference implements Runnable {
 
         if (this.mModel == null) {
             Log.e(this._tag, "new DeepSpeechModel(\"" + this.tfliteModel + "\")");
-            this.mModel = new DeepSpeechModel(this.tfliteModel, this.alphabet, BEAM_WIDTH);
+            this.mModel = new DeepSpeechModel(this.tfliteModel, this.beamWidth);
         }
 
         if (this.useDecoder) {
-            this.mModel.enableDecoderWihLM(this.LM, this.trie, LM_WEIGHT, VALID_WORD_COUNT_WEIGHT);
+            this.mModel.enableDecoderWihLM(this.LM, this.trie, this.lmAlpha, this.lmBeta);
         }
 
         if (this.keepClips) {
@@ -90,7 +115,7 @@ class LocalDSInference implements Runnable {
             }
         }
 
-        this.mStreamingState = this.mModel.createStream(aSampleRate);
+        this.mStreamingState = this.mModel.createStream();
         this.stopStream      = false;
     }
 
@@ -189,9 +214,9 @@ class LocalSpeechRecognition implements Runnable {
     Thread mInferenceThread;
 
     public static String kTfLiteModel = "output_graph.tflite";
-    public static String kAlphabet    = "alphabet.txt";
     public static String kLM          = "lm.binary";
     public static String kTrie        = "trie";
+    public static String kInfoJson    = "info.json";
 
     private static Map<String,String> mLanguages = new HashMap<String, String>();
     static {
@@ -199,7 +224,7 @@ class LocalSpeechRecognition implements Runnable {
         mLanguages.put("fr-FR", "fr-fr");
     }
 
-    private static String kBaseModelURL = "https://github.com/lissyx/DeepSpeech/releases/download/v0.6.0-alpha.7/";
+    private static String kBaseModelURL = "https://github.com/lissyx/DeepSpeech/releases/download/v0.6.0-alpha.14/";
 
     protected LocalSpeechRecognition(int aSampleRate, int aChannels, Vad aVad,
                                 MozillaSpeechService aService) {
@@ -209,7 +234,7 @@ class LocalSpeechRecognition implements Runnable {
         this.mChannels = aChannels;
         this.mService = aService;
 
-        this.mInferer = new LocalDSInference(this.mService, this.mSampleRate);
+        this.mInferer = new LocalDSInference(this.mService);
         this.mInferenceThread = new Thread(this.mInferer);
         this.mInferenceThread.start();
     }
@@ -324,11 +349,10 @@ class LocalSpeechRecognition implements Runnable {
 
         return rv;
     }
-    
+
     public static boolean ensureModelInstalled(String aModelPath) {
         Log.e(_tag, "ensureModelInstalled(" + aModelPath + ")");
         return (new File(aModelPath + "/" + kTfLiteModel)).exists()
-            && (new File(aModelPath + "/" + kAlphabet)).exists()
             && (new File(aModelPath + "/" + kLM)).exists()
             && (new File(aModelPath + "/" + kTrie)).exists();
     }
