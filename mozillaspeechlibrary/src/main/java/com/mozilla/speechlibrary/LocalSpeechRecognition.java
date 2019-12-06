@@ -224,7 +224,7 @@ class LocalSpeechRecognition implements Runnable {
         mLanguages.put("fr-FR", "fr-fr");
     }
 
-    private static String kBaseModelURL = "https://github.com/lissyx/DeepSpeech/releases/download/v0.6.0-alpha.14/";
+    private static String kBaseModelURL = "https://github.com/lissyx/DeepSpeech/releases/download/v0.6.0/";
 
     protected LocalSpeechRecognition(int aSampleRate, int aChannels, Vad aVad,
                                 MozillaSpeechService aService) {
