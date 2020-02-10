@@ -89,7 +89,9 @@ public class MozillaSpeechService {
     }
 
     public void cancel() {
-        // this.mNetworkSpeechRecognition.cancel();
+        if (this.mNetworkSpeechRecognition != null) {
+            this.mNetworkSpeechRecognition.cancel();
+        }
         if (this.mLocalSpeechRecognition != null) {
             this.mLocalSpeechRecognition.cancel();
         }
