@@ -1,49 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.mozilla.speechapp.MainActivity">
+
     <RelativeLayout
         android:id="@+id/InnerRelativeLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true" >
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-    <com.jjoe64.graphview.GraphView
-        android:layout_width="wrap_content"
-        android:layout_height="200dip"
-        android:id="@+id/graph"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="10dp"
-        />
+        <com.jjoe64.graphview.GraphView
+            android:id="@+id/graph"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_margin="15dp"/>
 
-    <Button
-        android:id="@+id/button_start"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/graph"
-        android:text="Start" />
+        <Button
+            android:id="@+id/button_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
+            android:layout_below="@+id/graph"
+            android:text="Start" />
 
-    <Button
-        android:id="@+id/button_cancel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/graph"
-        android:layout_toEndOf="@+id/button_start"
-        android:text="Cancel" />
+        <Button
+            android:id="@+id/button_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/graph"
+            android:layout_toEndOf="@+id/button_start"
+            android:text="Cancel" />
 
         <EditText
             android:id="@+id/plain_text_input"
             android:layout_width="match_parent"
-            android:layout_height="123dp"
+            android:layout_height="match_parent"
             android:layout_below="@+id/button_start"
-            android:layout_marginBottom="10dp"
-            android:layout_marginEnd="10dp"
             android:layout_marginStart="15dp"
             android:layout_marginTop="120dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="10dp"
             android:enabled="false"
             android:gravity="top"
             android:inputType="textMultiLine"
@@ -53,25 +56,28 @@
             android:id="@+id/useDeepSpeech"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
             android:layout_below="@+id/switchTranscriptions"
+            android:layout_alignParentEnd="true"
+            android:switchPadding="5dp"
             android:text="Use DeepSpeech" />
 
         <Switch
             android:id="@+id/switchTranscriptions"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_below="@+id/switchSamples"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:layout_below="@+id/switchSamples"
+            android:switchPadding="5dp"
             android:text="Store Transcriptions" />
 
         <Switch
             android:id="@+id/switchSamples"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
             android:layout_below="@+id/graph"
+            android:layout_alignParentEnd="true"
+            android:switchPadding="5dp"
             android:text="Store Samples" />
 
         <EditText
@@ -95,6 +101,6 @@
             android:ems="10"
             android:inputType="textPersonName"
             android:text="en-us" />
-    
+
     </RelativeLayout>
-</android.support.constraint.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -2,7 +2,6 @@ package com.mozilla.speechapp;
 
 import android.Manifest;
 
-import android.app.Activity;
 import android.app.DownloadManager;
 
 import android.content.pm.PackageManager;
@@ -13,9 +12,9 @@ import android.content.IntentFilter;
 
 import android.database.Cursor;
 
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.appcompat.app.AppCompatActivity;
 
 import android.net.Uri;
 
@@ -25,7 +24,6 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import android.view.View;
-import android.view.WindowManager;
 
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -46,9 +44,9 @@ import java.io.File;
 
 import net.lingala.zip4j.core.ZipFile;
 
-import static android.support.constraint.Constraints.TAG;
-
 public class MainActivity extends AppCompatActivity implements ISpeechRecognitionListener, CompoundButton.OnCheckedChangeListener {
+
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     private static long sDownloadId;
     private static DownloadManager sDownloadManager;
