@@ -1,8 +1,12 @@
 package com.mozilla.speechlibrary;
 
-import android.app.Activity;
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
+
+import com.mozilla.speechlibrary.networking.NetworkSettings;
+
+import org.mozilla.geckoview.GeckoWebExecutor;
 
 import java.util.ArrayList;
 
@@ -12,11 +16,11 @@ public class MozillaSpeechService {
     private final int SAMPLERATE = 16000;
     private final int CHANNELS = 1;
     private ArrayList<ISpeechRecognitionListener> mListeners;
-    private Context mContext;
     private boolean isIdle = true;
-    NetworkSettings mNetworkSettings;
+    private NetworkSettings mNetworkSettings;
     private boolean useDeepSpeech = false;
     private String mModelPath;
+    private GeckoWebExecutor mExecutor;
 
     public enum SpeechState
     {
@@ -27,7 +31,6 @@ public class MozillaSpeechService {
     private static final MozillaSpeechService ourInstance = new MozillaSpeechService();
     private NetworkSpeechRecognition mNetworkSpeechRecognition;
     private LocalSpeechRecognition mLocalSpeechRecognition;
-    private SpeechState mState;
     private Vad mVad;
 
     public static MozillaSpeechService getInstance() {
@@ -46,7 +49,6 @@ public class MozillaSpeechService {
                 notifyListeners(SpeechState.ERROR, "Recognition already In progress");
             } else {
                 int retVal = mVad.start();
-                this.mContext = aContext;
                 if (retVal < 0) {
                     notifyListeners(SpeechState.ERROR, "Error Initializing VAD " + String.valueOf(retVal));
                 } else {
@@ -77,12 +79,11 @@ public class MozillaSpeechService {
         mListeners.add(aListener);
     }
 
-    protected void notifyListeners(MozillaSpeechService.SpeechState aState, Object aPayload) {
+    public void notifyListeners(MozillaSpeechService.SpeechState aState, Object aPayload) {
         if (aState == SpeechState.STT_RESULT || aState == SpeechState.ERROR
                 || aState == SpeechState.NO_VOICE || aState == SpeechState.CANCELED) {
             isIdle = true;
         }
-        mState = aState;
         for (ISpeechRecognitionListener listener : mListeners) {
             listener.onSpeechStatusChanged(aState, aPayload);
         }
@@ -142,6 +143,16 @@ public class MozillaSpeechService {
 
     public void setProductTag(String tag) {
         this.mNetworkSettings.mProductTag = tag;
+    }
+
+    public void setGeckoWebExecutor(@NonNull GeckoWebExecutor executor) {
+        mExecutor = executor;
+    }
+
+    GeckoWebExecutor getGeckoWebExecutor() {
+        // We used to be able to get the GeckoRuntime instance through GeckoRuntime.getInstance but
+        // it has been made private so now we need to provide the GeckoWebExecutor from outside
+        return mExecutor;
     }
 
 }
