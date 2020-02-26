@@ -6,10 +6,10 @@ def versionMinor = 0
 def versionPatch = 10
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 28
     defaultConfig {
         minSdkVersion 24
-        targetSdkVersion 25
+        targetSdkVersion 28
         versionCode versionMajor * 10000 + versionMinor * 100 + versionPatch
         versionName "${versionMajor}.${versionMinor}.${versionPatch}"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -34,8 +34,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = 1.7
-        targetCompatibility = 1.7
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
     }
 
     lintOptions {
@@ -45,13 +45,16 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.loopj.android:android-async-http:1.4.9'
     implementation 'org.mozilla.deepspeech:libdeepspeech:0.6.1@aar'
+    implementation 'org.gagravarr:vorbis-java-core:0.8'
+    implementation 'com.github.axet:opus:1.0.2'
+    implementation 'com.github.axet:jssrc:1.0.2-2'
+    implementation 'org.apache.commons:commons-math3:3.6.1'
+
+    compileOnly 'com.loopj.android:android-async-http:1.4.9'
+    compileOnly "org.mozilla.geckoview:geckoview-nightly-x86_64:74.0.20200107215758"
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-    api 'org.gagravarr:vorbis-java-core:0.8'
-    api 'com.github.axet:opus:1.0.2'
-    api 'com.github.axet:jssrc:1.0.2-2'
-    api 'org.apache.commons:commons-math3:3.6.1'
 }

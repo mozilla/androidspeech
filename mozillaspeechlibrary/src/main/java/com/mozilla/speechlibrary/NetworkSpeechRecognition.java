@@ -3,11 +3,19 @@ package com.mozilla.speechlibrary;
 import android.content.Context;
 import android.media.AudioRecord;
 import android.os.Process;
+
 import com.github.axet.audiolibrary.encoders.Encoder;
 import com.github.axet.audiolibrary.encoders.EncoderInfo;
 import com.github.axet.audiolibrary.encoders.Factory;
 import com.github.axet.audiolibrary.encoders.FormatOPUS;
 import com.github.axet.audiolibrary.encoders.Sound;
+import com.mozilla.speechlibrary.networking.CustomNetworking;
+import com.mozilla.speechlibrary.networking.GeckoNetworking;
+import com.mozilla.speechlibrary.networking.NetworkSettings;
+import com.mozilla.speechlibrary.networking.Networking;
+
+import org.mozilla.geckoview.GeckoWebExecutor;
+
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 
@@ -28,15 +36,17 @@ class NetworkSpeechRecognition implements Runnable {
     MozillaSpeechService mService;
     Networking network;
     NetworkSettings mNetworkSettings;
+    GeckoWebExecutor mExecutor;
 
     protected NetworkSpeechRecognition(int aSampleRate, int aChannels, Vad aVad, Context aContext,
-                                MozillaSpeechService aService, NetworkSettings mNetworkSettings) {
+                                       MozillaSpeechService aService, NetworkSettings mNetworkSettings) {
         this.mVad = aVad;
         this.mContext = aContext;
         this.mSampleRate = aSampleRate;
         this.mChannels = aChannels;
         this.mService = aService;
         this.mNetworkSettings = mNetworkSettings;
+        this.mExecutor = aService.getGeckoWebExecutor();
     }
 
     public void run() {
@@ -53,8 +63,18 @@ class NetworkSpeechRecognition implements Runnable {
             long dtantes = System.currentTimeMillis();
             long dtantesmili = 	System.currentTimeMillis();
             boolean raisenovoice = false;
-            network = new Networking(mService);
-            network.mContext = this.mContext;
+
+            try {
+                Class.forName("org.mozilla.geckoview.GeckoWebExecutor");
+                if (mExecutor == null) {
+                    throw new IllegalStateException("GeckoWebExecutor not set, call enableGeckoWebExecutor first.");
+                }
+                network = new GeckoNetworking(mContext, mService, mExecutor);
+
+            } catch (ClassNotFoundException exception) {
+                network = new CustomNetworking(mContext, mService);
+            }
+
             AudioRecord recorder = Sound.getAudioRecord(mChannels, mSampleRate);
             EncoderInfo ef = new EncoderInfo(1, mSampleRate, 16);
             Encoder e = Factory.getEncoder(mContext, FormatOPUS.EXT, ef, baos);
