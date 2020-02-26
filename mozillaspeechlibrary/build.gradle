@@ -12,7 +12,7 @@ android {
         targetSdkVersion 28
         versionCode versionMajor * 10000 + versionMinor * 100 + versionPatch
         versionName "${versionMajor}.${versionMinor}.${versionPatch}"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'proguard-consumer-rules.pro'
 
         ndk {
@@ -50,12 +50,12 @@ dependencies {
     implementation 'com.github.axet:opus:1.0.2'
     implementation 'com.github.axet:jssrc:1.0.2-2'
     implementation 'org.apache.commons:commons-math3:3.6.1'
-    implementation 'androidx.annotation:annotation:1.0.0'
+    implementation 'androidx.annotation:annotation:1.1.0'
 
     compileOnly 'com.loopj.android:android-async-http:1.4.9'
     compileOnly "org.mozilla.geckoview:geckoview-nightly-x86_64:75.0.20200213035745"
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
