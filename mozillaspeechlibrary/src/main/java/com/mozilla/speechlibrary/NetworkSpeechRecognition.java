@@ -67,7 +67,7 @@ class NetworkSpeechRecognition implements Runnable {
             try {
                 Class.forName("org.mozilla.geckoview.GeckoWebExecutor");
                 if (mExecutor == null) {
-                    throw new IllegalStateException("GeckoWebExecutor not set, call enableGeckoWebExecutor first.");
+                    throw new IllegalStateException("GeckoWebExecutor not set, call setGeckoWebExecutor first.");
                 }
                 network = new GeckoNetworking(mContext, mService, mExecutor);
 

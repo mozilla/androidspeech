@@ -3,7 +3,8 @@ package com.mozilla.speechlibrary.networking;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 import com.mozilla.speechlibrary.MozillaSpeechService;
 import com.mozilla.speechlibrary.STTResult;
@@ -37,8 +38,9 @@ public class GeckoNetworking extends Networking {
         }
 
         mHandler.post(() -> {
-            ByteBuffer input = ByteBuffer.allocateDirect(baos.size());
-            input.put(baos.toByteArray());
+            byte[] byteArray = baos.toByteArray();
+            ByteBuffer input = ByteBuffer.allocateDirect(byteArray.length);
+            input.put(byteArray);
             WebRequest request = new WebRequest.Builder(STT_ENDPOINT)
                     .body(input)
                     .method("POST")
