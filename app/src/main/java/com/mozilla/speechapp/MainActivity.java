@@ -228,7 +228,7 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
 
     public void maybeDownloadOrExtractModel(String aModelsPath, String aLang) {
         String zipFile   = aModelsPath + "/" + aLang + ".zip";
-        String aModelPath= aModelsPath + "/" + aLang + "/";
+        String aModelPath= aModelsPath + "/";
 
         File aModelFolder = new File(aModelPath);
         if (!aModelFolder.exists()) {
