@@ -7,100 +7,136 @@
     android:layout_height="match_parent"
     tools:context="com.mozilla.speechapp.MainActivity">
 
-    <RelativeLayout
-        android:id="@+id/InnerRelativeLayout"
+    <LinearLayout
+        android:id="@+id/main"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toTopOf="@+id/buttons_layout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        android:focusableInTouchMode="true">
 
         <com.jjoe64.graphview.GraphView
             android:id="@+id/graph"
             android:layout_width="match_parent"
             android:layout_height="200dp"
-            android:layout_margin="15dp"/>
+            android:layout_margin="10dp" />
 
-        <Button
-            android:id="@+id/button_start"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="15dp"
-            android:layout_below="@+id/graph"
-            android:text="Start" />
-
-        <Button
-            android:id="@+id/button_cancel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/graph"
-            android:layout_toEndOf="@+id/button_start"
-            android:text="Cancel" />
-
-        <EditText
-            android:id="@+id/plain_text_input"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@+id/button_start"
-            android:layout_marginStart="15dp"
-            android:layout_marginTop="120dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="10dp"
-            android:enabled="false"
-            android:gravity="top"
-            android:inputType="textMultiLine"
-            android:singleLine="false" />
-
-        <Switch
-            android:id="@+id/useDeepSpeech"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/switchTranscriptions"
-            android:layout_alignParentEnd="true"
-            android:switchPadding="5dp"
-            android:text="Use DeepSpeech" />
+            android:layout_margin="10dp"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-        <Switch
-            android:id="@+id/switchTranscriptions"
-            android:layout_width="wrap_content"
+                <EditText
+                    android:id="@+id/txtProdutTag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="textPersonName"
+                    android:text="product tag" />
+
+                <EditText
+                    android:id="@+id/txtLanguage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="textPersonName"
+                    android:text="en-us" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <Switch
+                    android:id="@+id/switchSamples"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:switchPadding="5dp"
+                    android:text="Store Samples" />
+
+                <Switch
+                    android:id="@+id/useDeepSpeech"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:switchPadding="5dp"
+                    android:text="Use DeepSpeech" />
+
+                <Switch
+                    android:id="@+id/switchTranscriptions"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:switchPadding="5dp"
+                    android:text="Store Transcriptions" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/plain_text_input"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="10dp"
+        android:enabled="true"
+        android:gravity="bottom"
+        android:singleLine="false"
+        android:scrollbars="vertical"
+        app:layout_constraintBottom_toTopOf="@+id/buttons_layout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/main" />
+
+    <LinearLayout
+        android:id="@+id/buttons_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_margin="10dp"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/switchSamples"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:switchPadding="5dp"
-            android:text="Store Transcriptions" />
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_gravity="center_horizontal">
+            <Button
+                android:id="@+id/button_start"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Start" />
 
-        <Switch
-            android:id="@+id/switchSamples"
-            android:layout_width="wrap_content"
+            <Button
+                android:id="@+id/button_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cancel" />
+            <Button
+                android:id="@+id/button_clear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Clear" />
+        </LinearLayout>
+        <ProgressBar
+            android:id="@+id/download_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/graph"
-            android:layout_alignParentEnd="true"
-            android:switchPadding="5dp"
-            android:text="Store Samples" />
-
-        <EditText
-            android:id="@+id/txtProdutTag"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/plain_text_input"
-            android:layout_alignStart="@+id/graph"
-            android:layout_marginBottom="-50dp"
-            android:ems="10"
-            android:inputType="textPersonName"
-            android:text="ProductTag" />
-
-        <EditText
-            android:id="@+id/txtLanguage"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/plain_text_input"
-            android:layout_alignStart="@+id/graph"
-            android:layout_marginBottom="-80dp"
-            android:ems="10"
-            android:inputType="textPersonName"
-            android:text="en-us" />
-
-    </RelativeLayout>
+            android:layout_marginBottom="5dp"
+            android:indeterminate="false" />
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

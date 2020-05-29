@@ -1,134 +1,191 @@
 package com.mozilla.speechapp;
 
 import android.Manifest;
-
 import android.app.DownloadManager;
-
 import android.content.pm.PackageManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-
-import android.database.Cursor;
+import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.Switch;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-
-import android.net.Uri;
-
-import android.os.Bundle;
-import android.os.AsyncTask;
-
-import android.util.Log;
-
-import android.view.View;
-
-import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.Switch;
-import android.widget.Toast;
+import androidx.core.app.ActivityCompat;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
-
-import com.mozilla.speechlibrary.ISpeechRecognitionListener;
-import com.mozilla.speechlibrary.MozillaSpeechService;
-import com.mozilla.speechlibrary.STTResult;
+import com.mozilla.speechlibrary.utils.download.Download;
+import com.mozilla.speechlibrary.utils.download.DownloadJob;
+import com.mozilla.speechlibrary.utils.download.DownloadsManager;
+import com.mozilla.speechlibrary.utils.zip.UnzipCallback;
+import com.mozilla.speechlibrary.utils.zip.UnzipTask;
+import com.mozilla.speechlibrary.stt.STTResult;
+import com.mozilla.speechlibrary.SpeechResultCallback;
+import com.mozilla.speechlibrary.SpeechService;
+import com.mozilla.speechlibrary.SpeechServiceSettings;
+import com.mozilla.speechlibrary.utils.StorageUtils;
+import com.mozilla.speechlibrary.utils.ModelUtils;
 import com.mozilla.speechmodule.R;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-import net.lingala.zip4j.core.ZipFile;
-
-public class MainActivity extends AppCompatActivity implements ISpeechRecognitionListener, CompoundButton.OnCheckedChangeListener {
+public class MainActivity extends AppCompatActivity implements
+        SpeechResultCallback,
+        DownloadsManager.DownloadsListener,
+        UnzipCallback {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private static long sDownloadId;
-    private static DownloadManager sDownloadManager;
+    private static final @StorageUtils.StorageType int STORAGE_TYPE = StorageUtils.INTERNAL_STORAGE;
 
-    private MozillaSpeechService mMozillaSpeechService;
-    private GraphView mGraph;
-    private long mDtstart;
+    private SpeechService mSpeechService;
+    private long mDtStart;
     private LineGraphSeries<DataPoint> mSeries1;
-    private EditText mPlain_text_input;
+    private TextView mLogText;
+    private EditText mTxtLanguage;
+    private Switch mTranscriptionsSwitch;
+    private Switch mStoreSamplesSwitch;
+    private Switch mDeepSpeechSwitch;
+    private ProgressBar mProgressBar;
+    private Button mStartButton;
+    private DownloadsManager mDownloadManager;
+    private UnzipTask mUnzip;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mMozillaSpeechService = MozillaSpeechService.getInstance();
+        mSpeechService = new SpeechService(this);
+        mUnzip = new UnzipTask(this);
+        mDownloadManager = new DownloadsManager(this);
         initialize();
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        mUnzip.addListener(this);
+        mDownloadManager.init();
+        mDownloadManager.addListener(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        mUnzip.removeListener(this);
+        mDownloadManager.end();
+        mDownloadManager.removeListener(this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        mSpeechService.stop();
+        super.onDestroy();
+    }
+
     private void initialize() {
+        EditText txtProductTag;
+        mTranscriptionsSwitch = findViewById(R.id.switchTranscriptions);
+        mStoreSamplesSwitch = findViewById(R.id.switchSamples);
+        mDeepSpeechSwitch = findViewById(R.id.useDeepSpeech);
+        mProgressBar = findViewById(R.id.download_progress);
 
-        Button buttonStart, buttonCancel;
-        EditText txtProdutTag, txtLanguage;
-        Switch switchTranscriptions = findViewById(R.id.switchTranscriptions);
-        Switch switchSamples = findViewById(R.id.switchSamples);
-        Switch useDeepSpeech = findViewById(R.id.useDeepSpeech);
-
+        List<String> permissions = new ArrayList<>();
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
                 != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO},
-                    123);
+            permissions.add(Manifest.permission.RECORD_AUDIO);
         }
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    124);
+            permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+        if (permissions.size() > 0) {
+            ActivityCompat.requestPermissions(this, permissions.toArray(new String[0]), 123);
         }
 
-        buttonStart = findViewById(R.id.button_start);
-        buttonCancel = findViewById(R.id.button_cancel);
-        txtProdutTag = findViewById(R.id.txtProdutTag);
-        txtLanguage = findViewById(R.id.txtLanguage);
+        mStartButton = findViewById(R.id.button_start);
+        txtProductTag = findViewById(R.id.txtProdutTag);
+        mTxtLanguage = findViewById(R.id.txtLanguage);
 
-        mPlain_text_input = findViewById(R.id.plain_text_input);
-        buttonStart.setOnClickListener((View v) ->  {
-            try {
-                mMozillaSpeechService.addListener(this);
-                mDtstart = System.currentTimeMillis();
-                mSeries1.resetData(new DataPoint[0]);
-                mMozillaSpeechService.setLanguage(txtLanguage.getText().toString());
-                mMozillaSpeechService.setProductTag(txtProdutTag.getText().toString());
-                mMozillaSpeechService.setModelPath(getExternalFilesDir("models").getAbsolutePath());
-                if (!useDeepSpeech.isChecked() || mMozillaSpeechService.ensureModelInstalled()) {
-                    mMozillaSpeechService.start(getApplicationContext());
+        mLogText = findViewById(R.id.plain_text_input);
+        mLogText.setMovementMethod(new ScrollingMovementMethod());
+
+        mStartButton.setOnClickListener((View v) ->  {
+            mDtStart = System.currentTimeMillis();
+            mSeries1.resetData(new DataPoint[0]);
+
+            SpeechServiceSettings.Builder builder = new SpeechServiceSettings.Builder()
+                    .withLanguage(mTxtLanguage.getText().toString())
+                    .withStoreSamples(mStoreSamplesSwitch.isChecked())
+                    .withStoreTranscriptions(mTranscriptionsSwitch.isChecked())
+                    .withProductTag(txtProductTag.getText().toString())
+                    .withUseDeepSpeech(mDeepSpeechSwitch.isChecked());
+            if (mDeepSpeechSwitch.isChecked()) {
+                String language = mTxtLanguage.getText().toString();
+                String modelPath = ModelUtils.modelPath(this, language);
+
+                if (ModelUtils.isReady(modelPath)) {
+                    // The model is already downloaded and unzipped
+                    builder.withModelPath(modelPath);
+                    mSpeechService.start(builder.build(), this);
+
                 } else {
-                    maybeDownloadOrExtractModel(getExternalFilesDir("models").getAbsolutePath(), mMozillaSpeechService.getLanguageDir());
+                    String zipPath = ModelUtils.modelDownloadOutputPath(
+                            this,
+                            language,
+                            STORAGE_TYPE);
+                    if (new File(zipPath).exists()) {
+                        mUnzip.start(zipPath);
+
+                    } else {
+                        // The model needs to be downloaded
+                        downloadModel(language);
+                    }
                 }
-            } catch (Exception e) {
-                Log.d(TAG, e.getLocalizedMessage());
-                e.printStackTrace();
+
+            } else {
+                mSpeechService.start(builder.build(), this);
             }
         });
 
-        buttonCancel.setOnClickListener((View v) ->  {
+        findViewById(R.id.button_cancel).setOnClickListener((View v) ->  {
             try {
-                mMozillaSpeechService.cancel();
+                mSpeechService.stop();
+                mDownloadManager.getDownloads().forEach(download -> {
+                    if (download.getStatus() != DownloadManager.STATUS_SUCCESSFUL) {
+                        mDownloadManager.removeDownload(download.getId(), true);
+                    }
+                });
+                mUnzip.cancel();
+
+                mLogText.append("Cancel\n");
+                mProgressBar.setVisibility(View.GONE);
+                mStartButton.setEnabled(true);
+
             } catch (Exception e) {
                 Log.d(TAG, e.getLocalizedMessage());
                 e.printStackTrace();
             }
         });
 
-        switchTranscriptions.setOnCheckedChangeListener(this);
-        switchSamples.setOnCheckedChangeListener(this);
-        useDeepSpeech.setOnCheckedChangeListener(this);
-        switchTranscriptions.toggle();
-        switchSamples.toggle();
-        useDeepSpeech.toggle();
+        findViewById(R.id.button_clear).setOnClickListener(v -> mLogText.setText(""));
 
-        mGraph = findViewById(R.id.graph);
+        mTranscriptionsSwitch.toggle();
+        mStoreSamplesSwitch.toggle();
+        mDeepSpeechSwitch.toggle();
+
+        GraphView mGraph = findViewById(R.id.graph);
         mSeries1 = new LineGraphSeries<>(new DataPoint[0]);
         mGraph.addSeries(mSeries1);
         mGraph.getViewport().setXAxisBoundsManual(true);
@@ -138,144 +195,162 @@ public class MainActivity extends AppCompatActivity implements ISpeechRecognitio
         mGraph.getViewport().setScrollableY(true); // enables vertical scrolling
     }
 
+    private void downloadModel(@NonNull String language) {
+        String modelUrl = ModelUtils.modelDownloadUrl(language);
+
+        // Check if the model is already downloaded
+        Download download = mDownloadManager.getDownloads().stream()
+                .filter(item ->
+                        item.getStatus() == DownloadManager.STATUS_SUCCESSFUL &&
+                                item.getUri().equals(modelUrl))
+                .findFirst().orElse(null);
+        if (download != null) {
+            onDownloadCompleted(download);
+
+        } else {
+            // Check if the model is in progress
+            boolean isInProgress = mDownloadManager.getDownloads().stream()
+                    .anyMatch(item ->
+                            item.getStatus() != DownloadManager.STATUS_FAILED &&
+                                    item.getUri().equals(modelUrl));
+            if (!isInProgress) {
+                // Download model
+                DownloadJob job = DownloadJob.create(
+                        modelUrl,
+                        "application/zip",
+                        0,
+                        null,
+                        ModelUtils.modelDownloadOutputPath(this, language, STORAGE_TYPE));
+                mDownloadManager.startDownload(job, STORAGE_TYPE);
+                mLogText.append("Model not available, downloading...\n");
+
+            } else {
+                mLogText.append("Model download already in progress\n");
+            }
+        }
+    }
+
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
-    public void onSpeechStatusChanged(MozillaSpeechService.SpeechState aState, Object aPayload){
-        this.runOnUiThread(() -> {
-            switch (aState) {
-                case DECODING:
-                    mPlain_text_input.append("Decoding... \n");
-                    break;
-                case MIC_ACTIVITY:
-                    long mPointx = System.currentTimeMillis() - mDtstart;
-                    mSeries1.appendData(new DataPoint(Math.round(mPointx) + 1, (double)aPayload * -1), true, 3000);
-                    break;
-                case STT_RESULT:
-                    String message = String.format("Success: %s (%s)", ((STTResult)aPayload).mTranscription, ((STTResult)aPayload).mConfidence);
-                    mPlain_text_input.append(message + "\n");
-                    removeListener();
-                    break;
-                case START_LISTEN:
-                    mPlain_text_input.append("Started to listen\n");
-                    break;
-                case NO_VOICE:
-                    mPlain_text_input.append("No Voice detected\n");
-                    removeListener();
-                    break;
-                case CANCELED:
-                    mPlain_text_input.append("Canceled\n");
-                    removeListener();
-                    break;
-                case ERROR:
-                    mPlain_text_input.append("Error:" + aPayload + " \n");
-                    removeListener();
-                    break;
-                default:
-                    break;
+    // SpeechResultCallback
+
+    @Override
+    public void onStartListen() {
+        mLogText.append("Started to listen\n");
+        mProgressBar.setVisibility(View.GONE);
+        mStartButton.setEnabled(false);
+    }
+
+    @Override
+    public void onMicActivity(double fftsum) {
+        mLogText.append("Mic activity detected\n");
+        long mPointX = System.currentTimeMillis() - mDtStart;
+        mSeries1.appendData(new DataPoint(Math.round(mPointX) + 1, fftsum * -1), true, 3000);
+    }
+
+    @Override
+    public void onDecoding() {
+        mLogText.append("Decoding... \n");
+    }
+
+    @Override
+    public void onSTTResult(@Nullable STTResult result) {
+        if (result != null) {
+            String message = String.format("Success: %s (%s)", result.mTranscription, result.mConfidence);
+            mLogText.append(message + "\n");
+        }
+        mStartButton.setEnabled(true);
+    }
+
+    @Override
+    public void onNoVoice() {
+        mLogText.append("No Voice detected\n");
+        mStartButton.setEnabled(true);
+    }
+
+    @Override
+    public void onError(@SpeechResultCallback.ErrorType int errorType, @Nullable String error) {
+        if (errorType == SPEECH_ERROR) {
+            mLogText.append("Speech recognition Error:" + error + " \n");
+            mProgressBar.setVisibility(View.GONE);
+            mStartButton.setEnabled(true);
+
+        } else if (errorType == MODEL_NOT_FOUND) {
+            downloadModel(mTxtLanguage.getText().toString());
+        }
+
+    }
+
+    // DownloadsManager
+
+    @Override
+    public void onDownloadsUpdate(@NonNull List<Download> downloads) {
+        downloads.forEach(download -> {
+            if (download.getStatus() == DownloadManager.STATUS_RUNNING &&
+                    ModelUtils.isModelUri(download.getUri())) {
+                mLogText.append("Downloading " + download.getFilename() + ": " + download.getProgress() + " \n");
             }
         });
     }
 
-    public void removeListener() {
-        mMozillaSpeechService.removeListener(this);
+    @Override
+    public void onDownloadCompleted(@NonNull Download download) {
+        String language = ModelUtils.languageForUri(download.getUri());
+        if (download.getStatus() == DownloadManager.STATUS_SUCCESSFUL &&
+                ModelUtils.isModelUri(download.getUri())) {
+            try {
+                File file = new File(download.getOutputFile());
+                if (file.exists()) {
+                    mUnzip.start(download.getOutputFile());
+
+                } else {
+                    mDownloadManager.removeDownload(download.getId(), true);
+                }
+
+            } catch (NullPointerException e) {
+                mLogText.append("Model not available: " + language);
+            }
+
+        } else {
+            mLogText.append("Model download error: " + language);
+        }
     }
 
     @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        if (buttonView.equals(findViewById(R.id.switchTranscriptions))) {
-            mMozillaSpeechService.storeTranscriptions(isChecked);
-        } else if (buttonView.equals(findViewById(R.id.switchSamples))) {
-            mMozillaSpeechService.storeSamples(isChecked);
-        } else if (buttonView.equals(findViewById(R.id.useDeepSpeech))) {
-            mMozillaSpeechService.useDeepSpeech(isChecked);
+    public void onDownloadError(@NonNull String error, @NonNull String file) {
+        mLogText.append(error + "\n");
+    }
+
+    // UnzipTask
+
+    @Override
+    public void onUnzipStart(@NonNull String zipFile) {
+        mLogText.append("Unzipping started" + "\n");
+    }
+
+    @Override
+    public void onUnzipProgress(@NonNull String zipFile, double progress) {
+        mLogText.append("Unzipping: " + progress + "\n");
+    }
+
+    @Override
+    public void onUnzipFinish(@NonNull String zipFile, @NonNull String outputPath) {
+        mLogText.append("Unzipping finished" + "\n");
+        File file = new File(zipFile);
+        if (file.exists()) {
+            file.delete();
         }
     }
 
-    private class AsyncUnzip extends AsyncTask<String, Void, Boolean> {
-
-        @Override
-        protected void onPreExecute() {
-            Toast noModel = Toast.makeText(getApplicationContext(), "Extracting downloaded model", Toast.LENGTH_LONG);
-            mPlain_text_input.append("Extracting downloaded model\n");
-            noModel.show();
-        }
-
-        @Override
-        protected Boolean doInBackground(String...params) {
-            String aZipFile = params[0], aRootModelsPath = params[1];
-            try {
-                ZipFile zf = new ZipFile(aZipFile);
-                zf.extractAll(aRootModelsPath);
-            } catch (Exception e) {
-                Log.d(TAG, e.getLocalizedMessage());
-                e.printStackTrace();
-            }
-
-            return (new File(aZipFile)).delete();
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result) {
-            Button buttonStart = findViewById(R.id.button_start), buttonCancel = findViewById(R.id.button_cancel);
-            mMozillaSpeechService.start(getApplicationContext());
-            buttonStart.setEnabled(true);
-            buttonCancel.setEnabled(true);
-        }
-
+    @Override
+    public void onUnzipCancelled(@NonNull String zipFile) {
+        mLogText.append("Unzipping cancelled" + "\n");
     }
 
-    public void maybeDownloadOrExtractModel(String aModelsPath, String aLang) {
-        String zipFile   = aModelsPath + "/" + aLang + ".zip";
-        String aModelPath= aModelsPath + "/" + aLang + "/";
-
-        File aModelFolder = new File(aModelPath);
-        if (!aModelFolder.exists()) {
-            aModelFolder.mkdirs();
-        }
-
-        Uri modelZipURL  = Uri.parse(mMozillaSpeechService.getModelDownloadURL());
-        Uri modelZipFile = Uri.parse("file://" + zipFile);
-
-        Button buttonStart = findViewById(R.id.button_start), buttonCancel = findViewById(R.id.button_cancel);
-        buttonStart.setEnabled(false);
-        buttonCancel.setEnabled(false);
-
-        BroadcastReceiver receiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
-                if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
-                    long downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0);
-                    DownloadManager.Query query = new DownloadManager.Query();
-                    query.setFilterById(downloadId);
-                    Cursor c = sDownloadManager.query(query);
-                    if (c.moveToFirst()) {
-                        int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
-                        if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
-                            Log.d(TAG, "Download successfull");
-
-                            new AsyncUnzip().execute(zipFile, aModelPath);
-                        }
-                    }
-                }
-            }
-        };
-
-        Toast noModel = Toast.makeText(getApplicationContext(), "No model has been found for language '" + aLang + "'. Triggering download ...", Toast.LENGTH_LONG);
-        mPlain_text_input.append("No model has been found for language '" + aLang + "'. Triggering download ...\n");
-        noModel.show();
-
-        sDownloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-        DownloadManager.Request request = new DownloadManager.Request(modelZipURL);
-        request.setTitle("DeepSpeech " + aLang);
-        request.setDescription("DeepSpeech Model");
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        request.setVisibleInDownloadsUi(false);
-        request.setDestinationUri(modelZipFile);
-        sDownloadId = sDownloadManager.enqueue(request);
-
-        getApplicationContext().registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+    @Override
+    public void onUnzipError(@NonNull String zipFile, @Nullable String error) {
+        mLogText.append("Unzipping error: " + error + "\n");
     }
 }

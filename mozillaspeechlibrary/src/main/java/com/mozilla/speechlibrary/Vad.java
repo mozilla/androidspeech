@@ -6,8 +6,8 @@ public class Vad {
         System.loadLibrary("webrtc_jni");
     }
 
-    protected native int start();
-    protected native int feed(short[] x, int n);
+    public native int start();
+    public native int feed(short[] x, int n);
     protected native int isSilence();
-    protected native int stop();
+    public native int stop();
 }
