@@ -1,1 +1,1 @@
-include ':app', ':mozillaspeechlibrary'
+include ':app', ':mozillaspeechlibrary', ':mozillaspeechutils'

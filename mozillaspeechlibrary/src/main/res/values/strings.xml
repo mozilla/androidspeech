@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Mozilla Android SpeechLibrary</string>
+    <string name="model_download_title">DeepSpeech model download</string>
+    <string name="model_download_description">DeepSpeech model download</string>
+    <string name="model_install_error">"Model not successfully installed"</string>
 </resources>
