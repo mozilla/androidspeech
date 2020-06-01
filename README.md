@@ -6,7 +6,8 @@ This is an Android library containing an API to Mozilla's speech recognition ser
 ## Installation
 ```
 dependencies { 
-      implementation 'com.github.mozilla:mozillaspeechlibrary:1.0.7'
+      implementation 'com.github.mozilla:mozillaspeechlibrary:2.0.0'
+      implementation 'com.github.mozilla:mozillaspeechutils:2.0.0'      // Just in case you want to use the utils for downloading/unzipping
 }
 ```
 
@@ -19,62 +20,60 @@ communication. So for this reason its integration is very simple: just call `sta
 
 #### First define a listener to capture the events:
 ```
-ISpeechRecognitionListener mVoiceSearchListener = new ISpeechRecognitionListener() {
-      public void onSpeechStatusChanged(final MozillaSpeechService.SpeechState aState, final Object aPayload){
-          runOnUiThread(new Runnable() {
-              @Override
-              public void run() {
-                  switch (aState) {
-                      case DECODING:
-                          // Handle when the speech object changes to decoding state
-                          break;
-                      case MIC_ACTIVITY:
-                          // Captures the activity from the microphone
-                          double db = (double)aPayload * -1;
-                          break;
-                      case STT_RESULT:
-                          // When the api finished processing and returned a hypothesis 
-                          string transcription = ((STTResult)aPayload).mTranscription;
-                          float confidence = ((STTResult)aPayload).mConfidence;
-                          break;
-                      case START_LISTEN:
-                          // Handle when the api successfully opened the microphone and started listening
-                          break;
-                      case NO_VOICE:
-                          // Handle when the api didn't detect any voice
-                          break;
-                      case CANCELED:
-                          // Handle when a cancelation was fully executed
-                          break;
-                      case ERROR:
-                          // Handle when any error occurred
-                          string error = aPayload;
-                          break;
-                      default:
-                          break;
-                  }
-              }
-          });
-      }
-  };
+SpeechResultCallback mVoiceSearchListener = new SpeechResultCallback() {
+
+    @Override
+    public void onStartListen() {
+        // Handle when the api successfully opened the microphone and started listening
+    }
+
+    @Override
+    public void onMicActivity(double fftsum) {
+        // Captures the activity from the microphone
+    }
+
+    @Override
+    public void onDecoding() {
+        // Handle when the speech object changes to decoding state
+    }
+
+    @Override
+    public void onSTTResult(@Nullable STTResult result) {
+        // When the api finished processing and returned a hypothesis
+    }
+
+    @Override
+    public void onNoVoice() {
+        // Handle when the api didn't detect any voice
+    }
+
+    @Override
+    public void onError(@SpeechResultCallback.ErrorType int errorType, @Nullable String error) {
+        // Handle when any error occurred
+
+    }
+};
+```
+#### Create an instance of the Speech Service:
+```
+    mSpeechService = new SpeechService(this);
 ```
 
-#### Then start it:
+#### Start a request:
 ```
-        mMozillaSpeechService = MozillaSpeechService.getInstance();
-        mMozillaSpeechService.setLanguage("en-US");
-        mMozillaSpeechService.addListener(mVoiceSearchListener);
-        mMozillaSpeechService.start(getApplicationContext());
+    SpeechServiceSettings.Builder builder = new SpeechServiceSettings.Builder()
+        .withLanguage("en-US")
+        .withStoreSamples(true)
+        .withStoreTranscriptions(true)
+        .withProductTag("product-tag")
+        .withUseDeepSpeech(true)            // If using DeepSpeech
+        .withModelPath("path/to/model");    // If using DeepSpeech
+    mSpeechService.start(builder.build(), mVoiceSearchListener);
 ```
 
 #### In the case you want to cancel a progressing operation:
 ```
-        mMozillaSpeechService.cancel();
-```
-
-#### To remove a listener:
-```
-        mMozillaSpeechService.removeListener(aListener);
+    mSpeechService.stop();
 ```
 
 **Note**: Your app will need `RECORD_AUDIO`, `WRITE_EXTERNAL_STORAGE` and `READ_EXTERNAL_STORAGE` permissions to be [set](https://github.com/mozilla/androidspeech/blob/master/app/src/main/AndroidManifest.xml#L5) in AndroidManifest.xml manifest and [requested](https://github.com/benfrancis/androidspeech/blob/master/app/src/main/java/com/mozilla/speechapp/MainActivity.java#L78) at runtime.
