@@ -1,9 +1,9 @@
 apply plugin: 'com.android.library'
 apply from: 'maven-push.gradle'
 
-def versionMajor = 1
+def versionMajor = 2
 def versionMinor = 0
-def versionPatch = 11
+def versionPatch = 0
 
 android {
     compileSdkVersion 28
@@ -12,6 +12,7 @@ android {
         targetSdkVersion 28
         versionCode versionMajor * 10000 + versionMinor * 100 + versionPatch
         versionName "${versionMajor}.${versionMinor}.${versionPatch}"
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'proguard-consumer-rules.pro'
 
