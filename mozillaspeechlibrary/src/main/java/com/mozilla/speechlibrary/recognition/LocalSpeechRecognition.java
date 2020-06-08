@@ -18,6 +18,8 @@ public class LocalSpeechRecognition extends SpeechRecognition {
     public void start(@NonNull SpeechServiceSettings settings,
                       @NonNull SpeechResultCallback callback) {
         mStt = new STTLocalClient(mContext, settings, this);
+        Thread sttThread = new Thread((STTLocalClient)mStt, "STT Thread");
+        sttThread.start();
         super.start(settings, callback);
     }
 }

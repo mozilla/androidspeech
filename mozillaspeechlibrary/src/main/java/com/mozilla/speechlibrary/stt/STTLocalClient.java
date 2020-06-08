@@ -20,8 +20,10 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class STTLocalClient extends STTBaseClient {
+public class STTLocalClient extends STTBaseClient implements Runnable {
 
     private static final String TAG = STTLocalClient.class.getSimpleName();
 
@@ -29,6 +31,8 @@ public class STTLocalClient extends STTBaseClient {
     private DeepSpeechModel mModel;
     private DeepSpeechStreamingState mStreamingState;
     private FileChannel clipDebug;
+    private Queue<short[]> mBuffers;
+    private boolean mEndOfStream;
 
     public STTLocalClient(@NonNull Context context,
                    @NonNull SpeechServiceSettings settings,
@@ -38,6 +42,7 @@ public class STTLocalClient extends STTBaseClient {
         String modelRoot = settings.getModelPath();
         if (!ModelUtils.isReady(modelRoot)) {
             mIsRunning = false;
+            mEndOfStream = true;
             mCallback.onSTTError("STT Error: Model not ready");
             return;
         }
@@ -63,6 +68,7 @@ public class STTLocalClient extends STTBaseClient {
 
         } catch (Exception e) {
             mIsRunning = false;
+            mEndOfStream = true;
             mCallback.onSTTError("STT Error");
             return;
         }
@@ -98,29 +104,29 @@ public class STTLocalClient extends STTBaseClient {
 
         mStreamingState = mModel.createStream();
         mIsRunning = true;
+        mEndOfStream = false;
     }
 
     @Override
     public void encode(final short[] aBuffer, final int pos, final int len) {
-        mModel.feedAudioContent(mStreamingState, aBuffer, len);
-
-        if (mKeepClips) {
-            // DEBUG
-            ByteBuffer myByteBuffer = ByteBuffer.allocate(aBuffer.length * 2);
-            myByteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-
-            ShortBuffer myShortBuffer = myByteBuffer.asShortBuffer();
-            myShortBuffer.put(aBuffer);
-
-            try {
-                clipDebug.write(myByteBuffer);
-
-            } catch (Exception ignored) {}
-        }
+        mBuffers.add(aBuffer);
     }
 
     @Override
     public void process() {
+        mEndOfStream = true;
+    }
+
+    private void closeModel() {
+        if (mModel != null) {
+            mModel.freeModel();
+        }
+
+        mStreamingState = null;
+        mModel = null;
+    }
+
+    private void decode() {
         mCallback.onSTTStart();
 
         String finalDecoded = mModel.finishStream(mStreamingState);
@@ -133,12 +139,34 @@ public class STTLocalClient extends STTBaseClient {
         mIsRunning = false;
     }
 
-    private void closeModel() {
-        if (mModel != null) {
-            mModel.freeModel();
+    @Override
+    public void run() {
+        mBuffers = new ConcurrentLinkedQueue<>();
+
+        while (!mEndOfStream || mBuffers.size() > 0) {
+            short[] aBuffer = mBuffers.poll();
+
+            if (aBuffer == null) {
+                continue;
+            }
+
+            this.mModel.feedAudioContent(mStreamingState, aBuffer, aBuffer.length);
+
+            // DEBUG
+            if (mKeepClips) {
+                ByteBuffer myByteBuffer = ByteBuffer.allocate(aBuffer.length * 2);
+                myByteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+
+                ShortBuffer myShortBuffer = myByteBuffer.asShortBuffer();
+                myShortBuffer.put(aBuffer);
+
+                try {
+                    clipDebug.write(myByteBuffer);
+
+                } catch (Exception ignored) {}
+            }
         }
 
-        mStreamingState = null;
-        mModel = null;
+        decode();
     }
 }

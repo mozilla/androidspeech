@@ -79,11 +79,11 @@ public abstract class SpeechRecognition implements STTClientCallback {
             while (mIsRunning && !done) {
                 int nshorts = 0;
 
-                short[] mBuftemp = new short[FRAME_SIZE * CHANNELS * 2];
-                nshorts = mRecorder.read(mBuftemp, 0, mBuftemp.length);
+                short[] mBufTemp = new short[FRAME_SIZE * CHANNELS * 2];
+                nshorts = mRecorder.read(mBufTemp, 0, mBufTemp.length);
 
-                vad = mVad.feed(mBuftemp, nshorts);
-                double[] fft =  Sound.fft(mBuftemp, 0, nshorts);
+                vad = mVad.feed(mBufTemp, nshorts);
+                double[] fft =  Sound.fft(mBufTemp, 0, nshorts);
                 double fftsum = Arrays.stream(fft).sum()/fft.length;
 
                 mCallback.onMicActivity(fftsum);
@@ -100,13 +100,13 @@ public abstract class SpeechRecognition implements STTClientCallback {
                     samplesVoice  += dtdepois - dtantesmili;
                     if (samplesVoice > MIN_VOICE) touchedVoice = true;
 
-                    for (int i = 0; i < mBuftemp.length; ++i) {
-                        mBuftemp[i] *= 5.0;
+                    for (int i = 0; i < mBufTemp.length; ++i) {
+                        mBufTemp[i] *= 5.0;
                     }
                 }
                 dtantesmili = dtdepois;
 
-                mStt.encode(mBuftemp, 0, nshorts);
+                mStt.encode(mBufTemp, 0, nshorts);
 
                 if (touchedVoice && touchedSilence) {
                     done = true;
