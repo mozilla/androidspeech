@@ -3,10 +3,12 @@ apply from: 'maven-push.gradle'
 
 def versionMajor = 2
 def versionMinor = 0
-def versionPatch = 0
+def versionPatch = 1
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
+    buildToolsVersion "29.0.2"
+
     defaultConfig {
         minSdkVersion 24
         targetSdkVersion 28
@@ -54,7 +56,7 @@ dependencies {
     implementation 'androidx.annotation:annotation:1.1.0'
 
     compileOnly 'com.loopj.android:android-async-http:1.4.9'
-    compileOnly "org.mozilla.geckoview:geckoview-nightly-x86_64:75.0.20200213035745"
+    compileOnly "org.mozilla.geckoview:geckoview-nightly-x86_64:79.0.20200604092907"
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'

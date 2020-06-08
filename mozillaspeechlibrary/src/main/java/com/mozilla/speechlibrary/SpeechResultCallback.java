@@ -5,8 +5,12 @@ import androidx.annotation.Nullable;
 
 import com.mozilla.speechlibrary.stt.STTResult;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 public interface SpeechResultCallback {
 
+    @Retention(RetentionPolicy.SOURCE)
     @IntDef(value = { SPEECH_ERROR, MODEL_NOT_FOUND})
     @interface ErrorType {}
     int SPEECH_ERROR = 0;
