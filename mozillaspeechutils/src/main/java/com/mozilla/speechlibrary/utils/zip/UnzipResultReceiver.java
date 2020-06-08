@@ -7,6 +7,8 @@ import android.os.ResultReceiver;
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 
 public class UnzipResultReceiver extends ResultReceiver {
@@ -16,6 +18,7 @@ public class UnzipResultReceiver extends ResultReceiver {
     static final String ZIP_OUTPUT_PATH = "zipOutputPath";
     static final String ZIP_ERROR = "zipError";
 
+    @Retention(RetentionPolicy.SOURCE)
     @IntDef(value = { STARTED, PROGRESS, FINISH, CANCEL, ERROR})
     @interface UnzipEvent {}
     static final int STARTED = 0;

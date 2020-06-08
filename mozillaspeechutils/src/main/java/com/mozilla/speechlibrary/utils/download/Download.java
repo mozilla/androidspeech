@@ -6,11 +6,14 @@ import android.database.Cursor;
 import androidx.annotation.IntDef;
 
 import java.io.File;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.net.URI;
 import java.net.URL;
 
 public class Download {
 
+    @Retention(RetentionPolicy.SOURCE)
     @IntDef(value = { UNAVAILABLE, PENDING, RUNNING, PAUSED, SUCCESSFUL, FAILED})
     @interface Status {}
     public static final int UNAVAILABLE = 0;
