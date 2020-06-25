@@ -175,7 +175,7 @@ public abstract class SpeechRecognition implements STTClientCallback {
         return mIsRunning;
     }
 
-    // STTClient
+    // STTClientCallback
 
     @Override
     public void onSTTStart() {

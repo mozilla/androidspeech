@@ -6,8 +6,6 @@ import android.os.Handler;
 
 import androidx.annotation.NonNull;
 
-import com.mozilla.speechlibrary.utils.ModelUtils;
-
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.progress.ProgressMonitor;
 
@@ -16,14 +14,12 @@ import java.util.concurrent.Executors;
 
 public class UnzipTask {
 
-    private Context mContext;
     private String mZipPath;
     private ProgressMonitor mUnzipMonitor;
     private UnzipResultReceiver mReceiver;
     private boolean mIsRunning;
 
     public UnzipTask(@NonNull Context context) {
-        mContext = context;
         mReceiver = new UnzipResultReceiver(new Handler(context.getMainLooper()));
         mIsRunning = false;
     }
@@ -36,25 +32,15 @@ public class UnzipTask {
         mReceiver.removeReceiver(listener);
     }
 
-    public void start(@NonNull String zipPath) {
-        Executors.newSingleThreadExecutor().submit(() -> startUnzip(zipPath));
+    public void start(@NonNull String zipPath, @NonNull String outputPath) {
+        Executors.newSingleThreadExecutor().submit(() -> startUnzip(zipPath, outputPath));
     }
 
-    private void startUnzip(@NonNull String zipPath) {
+    private void startUnzip(@NonNull String zipPath, @NonNull String outputPath) {
         mZipPath = zipPath;
 
-        String language = ModelUtils.languageForUri(mZipPath);
-        String modelPath = ModelUtils.modelPath(mContext, language);
-        if (modelPath == null) {
-            Bundle bundle = new Bundle();
-            bundle.putSerializable(UnzipResultReceiver.ZIP_PATH, mZipPath);
-            bundle.putSerializable(UnzipResultReceiver.ZIP_ERROR, "Model path not available");
-            mReceiver.send(UnzipResultReceiver.ERROR, bundle);
-            return;
-        }
-
         // Remove previous unzip attempt
-        File file = new File(modelPath);
+        File file = new File(outputPath);
         if (file.exists() && file.isDirectory()) {
             String[] children = file.list();
             for (String child : children) {
@@ -70,7 +56,7 @@ public class UnzipTask {
 
             ZipFile zipFile = new ZipFile(mZipPath);
             zipFile.setRunInThread(true);
-            zipFile.extractAll(modelPath);
+            zipFile.extractAll(outputPath);
             mUnzipMonitor = zipFile.getProgressMonitor();
             while (mUnzipMonitor.getState() == ProgressMonitor.STATE_BUSY) {
                 double progress = zipFile.getProgressMonitor().getPercentDone();
