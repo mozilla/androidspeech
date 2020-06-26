@@ -30,7 +30,7 @@ import com.mozilla.speechlibrary.stt.STTResult;
 import com.mozilla.speechlibrary.SpeechResultCallback;
 import com.mozilla.speechlibrary.SpeechService;
 import com.mozilla.speechlibrary.SpeechServiceSettings;
-import com.mozilla.speechlibrary.utils.StorageUtils;
+import com.mozilla.speechlibrary.utils.storage.StorageUtils;
 import com.mozilla.speechlibrary.utils.ModelUtils;
 import com.mozilla.speechmodule.R;
 
@@ -146,7 +146,13 @@ public class MainActivity extends AppCompatActivity implements
                             language,
                             STORAGE_TYPE);
                     if (new File(zipPath).exists()) {
-                        mUnzip.start(zipPath);
+                        String zipOutputPath = ModelUtils.modelPath(this, language);
+                        if (zipOutputPath != null) {
+                            mUnzip.start(zipPath, zipOutputPath);
+
+                        } else {
+                            mLogText.append("Output model path error");
+                        }
 
                     } else {
                         // The model needs to be downloaded
@@ -303,7 +309,13 @@ public class MainActivity extends AppCompatActivity implements
             try {
                 File file = new File(download.getOutputFile());
                 if (file.exists()) {
-                    mUnzip.start(download.getOutputFile());
+                    String zipOutputPath = ModelUtils.modelPath(this, language);
+                    if (zipOutputPath != null) {
+                        mUnzip.start(download.getOutputFile(), zipOutputPath);
+
+                    } else {
+                        mLogText.append("Output model path error");
+                    }
 
                 } else {
                     mDownloadManager.removeDownload(download.getId(), true);
@@ -352,5 +364,9 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onUnzipError(@NonNull String zipFile, @Nullable String error) {
         mLogText.append("Unzipping error: " + error + "\n");
+        File file = new File(zipFile);
+        if (file.exists()) {
+            file.delete();
+        }
     }
 }

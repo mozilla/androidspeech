@@ -15,7 +15,7 @@ import android.webkit.URLUtil;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.mozilla.speechlibrary.utils.StorageUtils;
+import com.mozilla.speechlibrary.utils.storage.StorageUtils;
 
 import java.io.File;
 import java.net.URI;
