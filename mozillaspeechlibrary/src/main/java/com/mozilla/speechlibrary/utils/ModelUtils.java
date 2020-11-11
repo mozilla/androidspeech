@@ -150,8 +150,6 @@ public class ModelUtils {
             return false;
         }
         return (new File(getTFLiteFolder(modelPath)).exists()
-                && new File(getLMFolder(modelPath)).exists()
-                && new File(getTRIEFolder(modelPath)).exists()
                 && new File(getInfoJsonFolder(modelPath)).exists());
     }
 
@@ -161,13 +159,13 @@ public class ModelUtils {
     }
 
     @NonNull
-    public static String getLMFolder(@NonNull String modelRoot) {
-        return modelRoot + "/lm.binary";
+    public static String getAlphabetFolder(@NonNull String modelRoot) {
+        return modelRoot + "/alphabet.txt";
     }
 
     @NonNull
-    public static String getTRIEFolder(@NonNull String modelRoot) {
-        return modelRoot + "/trie";
+    public static String getScorerFolder(@NonNull String modelRoot) {
+        return modelRoot + "/scorer";
     }
 
     @NonNull

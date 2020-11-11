@@ -88,11 +88,13 @@ public class STTLocalClient extends STTBaseClient implements Runnable {
 
         if (mModel == null) {
             Log.d(TAG, "new DeepSpeechModel(\"" + ModelUtils.getTFLiteFolder(modelRoot) + "\")");
-            mModel = new DeepSpeechModel(ModelUtils.getTFLiteFolder(modelRoot), beamWidth);
+            mModel = new DeepSpeechModel(ModelUtils.getTFLiteFolder(modelRoot));
+
         }
 
         if (useDecoder) {
-            mModel.enableDecoderWihLM(ModelUtils.getLMFolder(modelRoot), ModelUtils.getTRIEFolder(modelRoot), lmAlpha, lmBeta);
+            mModel.enableExternalScorer(ModelUtils.getScorerFolder(modelRoot));
+            mModel.setScorerAlphaBeta(lmAlpha, lmBeta);
         }
 
         if (mKeepClips) {
