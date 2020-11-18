@@ -150,7 +150,7 @@ public class ModelUtils {
             return false;
         }
         return (new File(getTFLiteFolder(modelPath)).exists()
-                && new File(getLMFolder(modelPath)).exists()
+                && ((new File(modelPath + "/.noUseDecoder")).exists() || new File(getLMFolder(modelPath)).exists())
                 && new File(getTRIEFolder(modelPath)).exists()
                 && new File(getInfoJsonFolder(modelPath)).exists());
     }
