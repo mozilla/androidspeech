@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 
 public class ModelUtils {
 
-    private static String MODEL_VERSION = "v0.6.0";
+    private static String MODEL_VERSION = "v0.9.1";
     private static String BASE_MODEL_URL = "https://github.com/lissyx/DeepSpeech/releases/download";
     private static final String MODELS_FOLDER = "models";
 
@@ -150,8 +150,7 @@ public class ModelUtils {
             return false;
         }
         return (new File(getTFLiteFolder(modelPath)).exists()
-                && new File(getLMFolder(modelPath)).exists()
-                && new File(getTRIEFolder(modelPath)).exists()
+                && new File(getScorerFolder(modelPath)).exists()
                 && new File(getInfoJsonFolder(modelPath)).exists());
     }
 
@@ -161,13 +160,8 @@ public class ModelUtils {
     }
 
     @NonNull
-    public static String getLMFolder(@NonNull String modelRoot) {
-        return modelRoot + "/lm.binary";
-    }
-
-    @NonNull
-    public static String getTRIEFolder(@NonNull String modelRoot) {
-        return modelRoot + "/trie";
+    public static String getScorerFolder(@NonNull String modelRoot) {
+        return modelRoot + "/scorer";
     }
 
     @NonNull
