@@ -47,9 +47,6 @@ public class STTLocalClient extends STTBaseClient implements Runnable {
             return;
         }
 
-        int beamWidth;
-        float lmAlpha;
-        float lmBeta;
         try {
             StringBuilder infoJsonContent = new StringBuilder();
             BufferedReader br = new BufferedReader(new FileReader(ModelUtils.getInfoJsonFolder(modelRoot)));
@@ -61,21 +58,12 @@ public class STTLocalClient extends STTBaseClient implements Runnable {
             br.close();
             Log.d(TAG, "infoJsonContent=" + infoJsonContent);
 
-            JSONObject modelParameters = (new JSONObject(infoJsonContent.toString())).getJSONObject("parameters");
-            beamWidth = modelParameters.getInt("beamWidth");
-            lmAlpha = (float)modelParameters.getDouble("lmAlpha");
-            lmBeta = (float)modelParameters.getDouble("lmBeta");
-
         } catch (Exception e) {
             mIsRunning = false;
             mEndOfStream = true;
             mCallback.onSTTError("STT Error");
             return;
         }
-
-        Log.d(TAG, "Read model parameters: beamWidth=" + beamWidth);
-        Log.d(TAG, "Read model parameters: lmAlpha=" + lmAlpha);
-        Log.d(TAG, "Read model parameters: lmBeta=" + lmBeta);
 
         int clipNumber = 0;
         clipNumber += 1;
@@ -88,11 +76,11 @@ public class STTLocalClient extends STTBaseClient implements Runnable {
 
         if (mModel == null) {
             Log.d(TAG, "new DeepSpeechModel(\"" + ModelUtils.getTFLiteFolder(modelRoot) + "\")");
-            mModel = new DeepSpeechModel(ModelUtils.getTFLiteFolder(modelRoot), beamWidth);
+            mModel = new DeepSpeechModel(ModelUtils.getTFLiteFolder(modelRoot));
         }
 
         if (useDecoder) {
-            mModel.enableDecoderWihLM(ModelUtils.getLMFolder(modelRoot), ModelUtils.getTRIEFolder(modelRoot), lmAlpha, lmBeta);
+            mModel.enableExternalScorer(ModelUtils.getScorerFolder(modelRoot));
         }
 
         if (mKeepClips) {
