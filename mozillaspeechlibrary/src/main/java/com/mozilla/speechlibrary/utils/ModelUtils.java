@@ -159,11 +159,6 @@ public class ModelUtils {
     }
 
     @NonNull
-    public static String getAlphabetFolder(@NonNull String modelRoot) {
-        return modelRoot + "/alphabet.txt";
-    }
-
-    @NonNull
     public static String getScorerFolder(@NonNull String modelRoot) {
         return modelRoot + "/scorer";
     }
